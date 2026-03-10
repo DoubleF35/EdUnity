@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EdUnity.beta — Studia Meglio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #0b0e14;
+      --surface:  #13171f;
+      --card:     #1a1f2b;
+      --border:   #252b3b;
+      --accent:   #4af4a4;
+      --accent2:  #4ab8f4;
+      --accent3:  #f4a44a;
+      --text:     #e8eaf0;
+      --muted:    #6b7280;
+      --danger:   #f45a5a;
+      --radius:   14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(18px);
+      background: rgba(11,14,20,.82);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 1.35rem;
+      letter-spacing: -.5px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    .badge-row { display: flex; gap: 8px; align-items: center; }
+    .badge {
+      font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 20px; border: 1px solid;
+    }
+    .badge-dsa  { color: var(--accent2); border-color: var(--accent2); background: rgba(74,184,244,.07); }
+    .badge-atleta { color: var(--accent3); border-color: var(--accent3); background: rgba(244,164,74,.07); }
+
+    /* ── MAIN GRID ── */
+    main {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto;
+      padding: 40px 24px 80px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 28px;
+    }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    /* ── SECTION TITLES ── */
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: .7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .12em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── RECORDER CARD ── */
+    .recorder-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+
+    .rec-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .rec-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.25rem; font-weight: 700;
+    }
+
+    .status-pill {
+      display: flex; align-items: center; gap: 7px;
+      font-size: .75rem; color: var(--muted);
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      transition: all .3s;
+    }
+    .status-pill .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--muted);
+      transition: all .3s;
+    }
+    .status-pill.recording { color: var(--danger); border-color: var(--danger); }
+    .status-pill.recording .dot {
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+      animation: pulse 1s infinite;
+    }
+    .status-pill.done { color: var(--accent); border-color: var(--accent); }
+    .status-pill.done .dot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* waveform */
+    .waveform {
+      height: 64px;
+      background: var(--surface);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      gap: 3px;
+      padding: 10px 16px;
+    }
+    .bar {
+      width: 3px; border-radius: 3px;
+      background: var(--border);
+      transition: height .1s, background .3s;
+      height: 6px;
+    }
+    .waveform.active .bar { background: var(--accent); }
+
+    /* controls */
+    .controls { display: flex; gap: 12px; align-items: center; }
+
+    .btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .85rem; font-weight: 500;
+      border: none; cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-primary {
+      background: var(--accent); color: #0b0e14;
+    }
+    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-secondary {
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger { background: rgba(244,90,90,.12); color: var(--danger); border: 1px solid rgba(244,90,90,.25); }
+    .btn-danger:hover { background: rgba(244,90,90,.22); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
+
+    .timer {
+      margin-left: auto;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .04em;
+    }
+    .timer.active { color: var(--danger); }
+
+    /* ── TRANSCRIPT BOX ── */
+    .transcript-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      min-height: 160px; max-height: 240px;
+      overflow-y: auto;
+      padding: 16px 18px;
+      font-size: .9rem; line-height: 1.7;
+      color: var(--text);
+    }
+    .transcript-box p { margin-bottom: .5em; }
+    .transcript-box .placeholder { color: var(--muted); font-style: italic; }
+    .transcript-box::-webkit-scrollbar { width: 5px; }
+    .transcript-box::-webkit-scrollbar-track { background: transparent; }
+    .transcript-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+
+    /* manual input */
+    .manual-input-area {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .manual-input-area label {
+      font-size: .8rem; color: var(--muted);
+    }
+    textarea.manual-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      line-height: 1.6;
+      padding: 14px 16px;
+      resize: vertical;
+      min-height: 120px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    textarea.manual-input:focus { border-color: var(--accent2); }
+    textarea.manual-input::placeholder { color: var(--muted); }
+
+    /* ── AI TOOLS PANEL ── */
+    .tools-panel {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    .tool-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex; flex-direction: column; gap: 14px;
+      cursor: pointer;
+      transition: border-color .2s, transform .15s;
+    }
+    .tool-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
+
+    .tool-top { display: flex; align-items: center; gap: 12px; }
+    .tool-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+    .icon-summary  { background: rgba(74,244,164,.12); }
+    .icon-map      { background: rgba(74,184,244,.12); }
+    .icon-flashcard{ background: rgba(244,164,74,.12); }
+    .icon-quiz     { background: rgba(244,90,90,.12); }
+    .icon-simplify { background: rgba(180,74,244,.12); }
+
+    .tool-info { flex: 1; }
+    .tool-name {
+      font-family: 'Syne', sans-serif;
+      font-size: .95rem; font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .tool-desc { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+
+    .tool-arrow { color: var(--muted); font-size: 1rem; transition: color .2s, transform .2s; }
+    .tool-card:hover .tool-arrow { color: var(--accent2); transform: translateX(3px); }
+
+    /* ── OUTPUT CARD ── */
+    .output-card {
+      grid-column: 1 / -1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .output-card.visible { display: flex; animation: fadeUp .35s ease; }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(16px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .output-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
+    }
+    .output-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+    }
+    .output-actions { display: flex; gap: 8px; }
+
+    .output-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      font-size: .9rem; line-height: 1.8;
+      color: var(--text);
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+    .output-body h2 { font-family: 'Syne', sans-serif; font-size: 1rem; margin-bottom: 8px; color: var(--accent); }
+    .output-body h3 { font-family: 'Syne', sans-serif; font-size: .9rem; margin: 14px 0 6px; color: var(--accent2); }
+    .output-body ul  { padding-left: 20px; margin-bottom: 10px; }
+    .output-body li  { margin-bottom: 4px; }
+    .output-body strong { color: var(--accent3); }
+
+    /* loading */
+    .loading-dots {
+      display: flex; gap: 6px; align-items: center; justify-content: center;
+      padding: 30px;
+    }
+    .loading-dots span {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent);
+      animation: bounce .7s infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: .12s; background: var(--accent2); }
+    .loading-dots span:nth-child(3) { animation-delay: .24s; background: var(--accent3); }
+
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: .75rem;
+      border-top: 1px solid var(--border);
+    }
+    footer span { color: var(--accent); }
+
+    /* ── FLASHCARD GRID ── */
+    .fc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      padding: 4px 2px;
+    }
+    .fc-card {
+      perspective: 900px;
+      height: 180px;
+      cursor: pointer;
+    }
+    .fc-inner {
+      position: relative; width: 100%; height: 100%;
+      transform-style: preserve-3d;
+      transition: transform .5s cubic-bezier(.4,0,.2,1);
+      border-radius: 12px;
+    }
+    .fc-card.flipped .fc-inner { transform: rotateY(180deg); }
+    .fc-front, .fc-back {
+      position: absolute; inset: 0;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .fc-front {
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .fc-back {
+      background: linear-gradient(135deg, rgba(74,244,164,.1), rgba(74,184,244,.08));
+      border: 1px solid rgba(74,244,164,.3);
+      transform: rotateY(180deg);
+    }
+    .fc-label {
+      font-size: .65rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .fc-front .fc-label { color: var(--accent2); }
+    .fc-back  .fc-label { color: var(--accent); }
+    .fc-text {
+      font-size: .9rem; line-height: 1.55;
+      flex: 1; display: flex; align-items: center;
+      margin: 10px 0;
+    }
+    .fc-hint {
+      font-size: .68rem; color: var(--muted);
+      text-align: right;
+    }
+    .fc-counter {
+      font-family: 'Syne', sans-serif;
+      font-size: .75rem; color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .fc-nav {
+      display: flex; gap: 10px; align-items: center; justify-content: center;
+      margin-top: 16px;
+    }
+    .fc-nav button {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px;
+      padding: 7px 18px; font-size: .82rem; cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .fc-nav button:hover { border-color: var(--accent); color: var(--accent); }
+    .fc-nav .fc-progress {
+      font-family: 'Syne', sans-serif;
+      font-size: .8rem; color: var(--muted); min-width: 60px; text-align: center;
+    }
+
+    /* ── SUMMARY TOGGLE ── */
+    .summary-toggle {
+      display: flex; gap: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      overflow: hidden;
+      width: fit-content;
+    }
+    .summary-toggle button {
+      padding: 7px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .78rem; font-weight: 500;
+      border: none; cursor: pointer;
+      background: transparent; color: var(--muted);
+      transition: all .2s;
+    }
+    .summary-toggle button.active {
+      background: var(--accent); color: #0b0e14; font-weight: 700;
+    }
+
+
+    .toast {
+      position: fixed; bottom: 28px; right: 28px; z-index: 999;
+      background: var(--card); border: 1px solid var(--accent);
+      border-radius: 10px; padding: 12px 18px;
+      font-size: .85rem; color: var(--accent);
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.4);
+      transform: translateY(80px); opacity: 0;
+      transition: all .3s;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Ed<span style="color:var(--accent)">U</span>nity<span style="font-size:.65rem;font-weight:600;color:var(--accent3);background:rgba(244,164,74,.12);border:1px solid rgba(244,164,74,.3);border-radius:6px;padding:2px 7px;margin-left:7px;letter-spacing:.05em;vertical-align:middle;">.beta</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:6px 12px;">
+      <span style="font-size:.75rem;color:var(--muted);white-space:nowrap;">🔑 Groq Key</span>
+      <input id="apiKeyInput" type="password" placeholder="gsk_..."
+        style="background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem;width:170px;"
+        oninput="saveKey(this.value)"/>
+      <span id="keyStatus" style="font-size:.75rem;color:var(--muted);">—</span>
+    </div>
+    <div class="badge-row">
+      <span class="badge badge-dsa">DSA</span>
+      <span class="badge badge-atleta">Studente‑Atleta</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── LEFT COLUMN ── -->
+  <div style="display:flex;flex-direction:column;gap:24px;">
+
+    <!-- Recorder -->
+    <div class="recorder-card">
+      <div class="rec-header">
+        <div class="rec-title">🎙 Registra la lezione</div>
+        <div class="status-pill" id="statusPill">
+          <div class="dot"></div>
+          <span id="statusText">In attesa</span>
+        </div>
+      </div>
+
+      <div class="waveform" id="waveform">
+        <!-- bars injected by JS -->
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-primary" id="btnRecord" onclick="toggleRecord()">
+          <span id="btnIcon">⏺</span>
+          <span id="btnLabel">Inizia Registrazione</span>
+        </button>
+        <button class="btn btn-danger" id="btnStop" onclick="stopRecord()" disabled>
+          ⏹ Stop
+        </button>
+        <div class="timer" id="timer">00:00</div>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="section-label" style="margin-bottom:0;">Trascrizione in tempo reale</div>
+          <button class="btn btn-danger" onclick="clearTranscript()" style="padding:5px 12px;font-size:.75rem;gap:5px;">
+            🗑 Cancella
+          </button>
+        </div>
+        <div class="transcript-box" id="transcriptBox">
+          <span class="placeholder">La trascrizione apparirà qui mentre parli…</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual input -->
+    <div class="recorder-card">
+      <div class="section-label">✏️ Oppure incolla il testo manualmente</div>
+      <div class="manual-input-area">
+        <textarea class="manual-input" id="manualText"
+          placeholder="Incolla qui gli appunti, i testi della lezione o qualsiasi contenuto da elaborare…"
+          rows="5"></textarea>
+        <div style="display:flex;gap:10px;align-self:flex-start;">
+          <button class="btn btn-secondary" onclick="useManualText()">
+            Usa questo testo →
+          </button>
+          <button class="btn btn-danger" onclick="clearManual()" style="padding:8px 14px;font-size:.82rem;">
+            🗑 Cancella
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── RIGHT COLUMN — AI Tools ── -->
+  <div class="tools-panel">
+    <div class="section-label">🤖 Strumenti AI</div>
+
+    <div class="tool-card" id="summaryCard">
+      <div class="tool-top" onclick="runTool('summary')">
+        <div class="tool-icon icon-summary">📝</div>
+        <div class="tool-info">
+          <div class="tool-name">Riassunto Intelligente</div>
+          <div class="tool-desc">Sintesi chiara e strutturata, ideale per DSA e ripasso veloce</div>
+        </div>
+        <div class="tool-arrow">→</div>
+      </div>
+      <div class="summary-toggle" onclick="event.stopPropagation()">
+        <button class="active" id="btnVeloce" onclick="setSummaryMode('veloce')">⚡ Veloce</button>
+        <button id="btnDettagliato" onclick="setSummaryMode('dettagliato')">📖 Dettagliato</button>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="runTool('mindmap')">
+      <div class="tool-top">
+        <div class="tool-icon icon-map">🗺</div>
+        <div class="tool-info">
+          <div class="tool-name">Mappa Concettuale</div>
+          <div class="tool-desc">Schema visivo gerarchico dei concetti principali</div>
+        </div>
+        <div class="tool-arrow">→</div>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="runTool('flashcard')">
+      <div class="tool-top">
+        <div class="tool-icon icon-flashcard">🃏</div>
+        <div class="tool-info">
+          <div class="tool-name">Flashcard</div>
+          <div class="tool-desc">Domanda + risposta per ogni concetto chiave. Perfetto per studenti‑atleti con poco tempo</div>
+        </div>
+        <div class="tool-arrow">→</div>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="runTool('quiz')">
+      <div class="tool-top">
+        <div class="tool-icon icon-quiz">❓</div>
+        <div class="tool-info">
+          <div class="tool-name">Quiz di Autovalutazione</div>
+          <div class="tool-desc">5 domande a risposta multipla per testare la comprensione</div>
+        </div>
+        <div class="tool-arrow">→</div>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="runTool('simplify')">
+      <div class="tool-top">
+        <div class="tool-icon icon-simplify">✨</div>
+        <div class="tool-info">
+          <div class="tool-name">Semplifica il Testo</div>
+          <div class="tool-desc">Riscrittura con frasi brevi e linguaggio accessibile — ottimizzato per DSA</div>
+        </div>
+        <div class="tool-arrow">→</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OUTPUT (full width) ── -->
+  <div class="output-card" id="outputCard">
+    <div class="output-header">
+      <div class="output-title" id="outputTitle">Risultato</div>
+      <div class="output-actions">
+        <button class="btn btn-secondary" onclick="copyOutput()">📋 Copia</button>
+        <button class="btn btn-secondary" onclick="downloadOutput()">⬇ Scarica .txt</button>
+        <button class="btn btn-secondary" onclick="closeOutput()">✕ Chiudi</button>
+      </div>
+    </div>
+    <div id="outputBody" class="output-body"></div>
+    <div id="flashcardContainer" style="display:none;"></div>
+  </div>
+
+</main>
+
+<footer>
+  Edunity — <span>Startup fondata a Torino</span> · Strumenti digitali per studenti DSA e studenti‑atleti
+</footer>
+
+<div class="toast" id="toast">✓ <span id="toastMsg"></span></div>
+
+<script>
+/* ──────────────────────────────────────────
+   WAVEFORM BARS
+────────────────────────────────────────── */
+const wf = document.getElementById('waveform');
+const BAR_COUNT = 40;
+for(let i=0;i<BAR_COUNT;i++){
+  const b = document.createElement('div');
+  b.className='bar';
+  b.style.height='6px';
+  wf.appendChild(b);
+}
+const bars = wf.querySelectorAll('.bar');
+
+let wfInterval = null;
+function animateBars(){
+  wfInterval = setInterval(()=>{
+    bars.forEach(b=>{
+      const h = Math.random()*38+4;
+      b.style.height = h+'px';
+    });
+  },80);
+}
+function stopBars(){
+  clearInterval(wfInterval);
+  bars.forEach(b=>b.style.height='6px');
+}
+
+/* ──────────────────────────────────────────
+   TIMER
+────────────────────────────────────────── */
+let timerSec=0, timerInt=null;
+const timerEl = document.getElementById('timer');
+function startTimer(){ timerInt=setInterval(()=>{timerSec++;updateTimer();},1000); }
+function stopTimer(){ clearInterval(timerInt); timerSec=0; updateTimer(); }
+function updateTimer(){
+  const m=String(Math.floor(timerSec/60)).padStart(2,'0');
+  const s=String(timerSec%60).padStart(2,'0');
+  timerEl.textContent=m+':'+s;
+}
+
+/* ──────────────────────────────────────────
+   SPEECH RECOGNITION
+────────────────────────────────────────── */
+let recognition=null, isRecording=false;
+let transcript='';
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function toggleRecord(){
+  if(!isRecording) startRecord(); else pauseRecord();
+}
+
+function startRecord(){
+  if(!SpeechRecognition){
+    showToast('Il tuo browser non supporta il riconoscimento vocale. Usa Chrome.');
+    return;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang='it-IT';
+  recognition.continuous=true;
+  recognition.interimResults=true;
+
+  recognition.onresult=(e)=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) transcript+=e.results[i][0].transcript+' ';
+      else interim+=e.results[i][0].transcript;
+    }
+    renderTranscript(transcript, interim);
+  };
+
+  recognition.onerror=(e)=>{
+    if(e.error==='not-allowed') showToast('Accesso al microfono negato. Controlla le autorizzazioni.');
+    stopRecord();
+  };
+
+  recognition.start();
+  isRecording=true;
+
+  document.getElementById('btnRecord').disabled=false;
+  document.getElementById('btnStop').disabled=false;
+  document.getElementById('btnIcon').textContent='⏸';
+  document.getElementById('btnLabel').textContent='Pausa';
+  document.getElementById('statusPill').className='status-pill recording';
+  document.getElementById('statusText').textContent='Registrazione in corso';
+  timerEl.className='timer active';
+
+  wf.classList.add('active');
+  animateBars();
+  startTimer();
+}
+
+function pauseRecord(){
+  if(recognition) recognition.stop();
+  isRecording=false;
+  document.getElementById('btnIcon').textContent='⏺';
+  document.getElementById('btnLabel').textContent='Riprendi';
+  document.getElementById('statusPill').className='status-pill';
+  document.getElementById('statusText').textContent='In pausa';
+  timerEl.className='timer';
+  wf.classList.remove('active');
+  stopBars();
+  clearInterval(timerInt);
+}
+
+function stopRecord(){
+  if(recognition){ recognition.stop(); recognition=null; }
+  isRecording=false;
+  document.getElementById('btnRecord').disabled=false;
+  document.getElementById('btnStop').disabled=true;
+  document.getElementById('btnIcon').textContent='⏺';
+  document.getElementById('btnLabel').textContent='Nuova Registrazione';
+  document.getElementById('statusPill').className='status-pill done';
+  document.getElementById('statusText').textContent='Completata';
+  timerEl.className='timer';
+  wf.classList.remove('active');
+  stopBars();
+  stopTimer();
+  if(transcript.trim()) showToast('Trascrizione completata!');
+}
+
+function renderTranscript(final, interim){
+  const box = document.getElementById('transcriptBox');
+  box.innerHTML = '';
+  if(final){
+    const p = document.createElement('p');
+    p.textContent = final;
+    box.appendChild(p);
+  }
+  if(interim){
+    const p = document.createElement('p');
+    p.style.color='var(--muted)';
+    p.style.fontStyle='italic';
+    p.textContent = interim;
+    box.appendChild(p);
+  }
+  box.scrollTop=box.scrollHeight;
+}
+
+/* ──────────────────────────────────────────
+   MANUAL TEXT
+────────────────────────────────────────── */
+function useManualText(){
+  const t = document.getElementById('manualText').value.trim();
+  if(!t){ showToast('Inserisci del testo prima.'); return; }
+  transcript = t;
+  const box = document.getElementById('transcriptBox');
+  box.innerHTML='';
+  const p=document.createElement('p');
+  p.textContent=t;
+  box.appendChild(p);
+  document.getElementById('statusPill').className='status-pill done';
+  document.getElementById('statusText').textContent='Testo caricato';
+  showToast('Testo caricato. Scegli uno strumento AI!');
+}
+
+function clearTranscript(){
+  transcript = '';
+  const box = document.getElementById('transcriptBox');
+  box.innerHTML = '<span class="placeholder">La trascrizione apparirà qui mentre parli…</span>';
+  document.getElementById('statusPill').className = 'status-pill';
+  document.getElementById('statusText').textContent = 'In attesa';
+  showToast('Trascrizione cancellata.');
+}
+
+function clearManual(){
+  document.getElementById('manualText').value = '';
+  showToast('Testo cancellato.');
+}
+
+/* ──────────────────────────────────────────
+   AI TOOLS
+────────────────────────────────────────── */
+let summaryMode = 'veloce'; // 'veloce' | 'dettagliato'
+
+function setSummaryMode(mode){
+  summaryMode = mode;
+  document.getElementById('btnVeloce').classList.toggle('active', mode==='veloce');
+  document.getElementById('btnDettagliato').classList.toggle('active', mode==='dettagliato');
+}
+
+const TOOL_CONFIG = {
+  summary: {
+    title: (mode) => mode==='veloce' ? '⚡ Riassunto Veloce' : '📖 Riassunto Dettagliato',
+    prompt: (t, mode) => mode==='veloce'
+      ? `Sei un assistente pedagogico per studenti con DSA e studenti-atleti con poco tempo.
+Crea un RIASSUNTO VELOCE del testo seguente:
+- Max 5 punti chiave (frasi brevi, max 15 parole ciascuna)
+- 1 frase "Da ricordare" alla fine
+- Usa **grassetto** per i termini chiave
+Sii conciso. Niente introduzioni.
+Testo: """${t}"""`
+      : `Sei un assistente pedagogico per studenti con DSA e studenti-atleti.
+Crea un RIASSUNTO DETTAGLIATO e completo del testo seguente:
+## Titolo
+Breve introduzione al tema (2-3 righe)
+## Punti Principali
+- Punto 1 spiegato con dettaglio
+- Punto 2 ...
+## Approfondimenti
+Concetti importanti da capire bene, con spiegazioni
+## Conclusione
+Sintesi finale e collegamento tra i concetti
+Usa **grassetto** per parole chiave. Sii esaustivo.
+Testo: """${t}"""`
+  },
+  mindmap: {
+    title: () => '🗺 Mappa Concettuale',
+    prompt: (t) => `Sei un assistente pedagogico specializzato per studenti con DSA.
+Dal testo seguente, estrai una MAPPA CONCETTUALE testuale strutturata così:
+CONCETTO CENTRALE
+├── Tema 1
+│   ├── Sottoconcetto A
+│   └── Sottoconcetto B
+├── Tema 2
+│   └── Sottoconcetto C
+└── Tema 3
+Usa esattamente questa struttura ASCII. Sii conciso e usa parole chiave.
+Testo: """${t}"""`
+  },
+  flashcard: {
+    title: () => '🃏 Flashcard',
+    prompt: (t) => `Sei un assistente pedagogico per studenti-atleti con poco tempo di studio.
+Dal testo seguente, crea esattamente 8 FLASHCARD.
+Usa ESCLUSIVAMENTE questo formato, senza aggiungere altro testo prima o dopo:
+DOMANDA: [domanda chiara e breve]
+RISPOSTA: [risposta concisa, max 2 righe]
+---
+DOMANDA: ...
+RISPOSTA: ...
+---
+(ripeti per tutte le 8 flashcard, termina sempre con ---)
+Testo: """${t}"""`
+  },
+  quiz: {
+    title: () => '❓ Quiz di Autovalutazione',
+    prompt: (t) => `Sei un assistente pedagogico specializzato.
+Dal testo seguente, crea un QUIZ di 5 domande a risposta multipla (A/B/C/D).
+Formato:
+**Domanda 1:** [testo domanda]
+A) opzione
+B) opzione
+C) opzione
+D) opzione
+✅ Risposta corretta: [lettera] — [breve spiegazione]
+
+Ripeti per tutte le 5 domande. Varia la difficoltà.
+Testo: """${t}"""`
+  },
+  simplify: {
+    title: () => '✨ Testo Semplificato (DSA)',
+    prompt: (t) => `Sei un esperto di didattica inclusiva e supporto per studenti con DSA (dislessia, disgrafia, discalculia).
+Riscrivi il testo seguente applicando questi principi:
+- Frasi brevi (max 15 parole)
+- Una sola idea per frase
+- Parole comuni, evita tecnicismi (se necessari, spiegali subito)
+- Paragrafi brevi separati da righe vuote
+- Usa elenchi puntati quando possibile
+Mantieni TUTTI i contenuti importanti, cambia solo lo stile.
+Testo: """${t}"""`
+  }
+};
+
+/* ── FLASHCARD RENDERER ── */
+let fcData = [];
+let fcIndex = 0;
+
+function parseFlashcards(raw){
+  const cards = [];
+  const blocks = raw.split('---').map(b=>b.trim()).filter(Boolean);
+  for(const block of blocks){
+    const dMatch = block.match(/DOMANDA:\s*(.+?)(?=RISPOSTA:|$)/s);
+    const rMatch = block.match(/RISPOSTA:\s*(.+)/s);
+    if(dMatch && rMatch){
+      cards.push({
+        q: dMatch[1].trim(),
+        a: rMatch[1].trim()
+      });
+    }
+  }
+  return cards;
+}
+
+function renderFlashcards(cards){
+  fcData = cards;
+  fcIndex = 0;
+  const container = document.getElementById('flashcardContainer');
+  const body = document.getElementById('outputBody');
+  body.style.display = 'none';
+  container.style.display = 'block';
+  showFlashcard();
+}
+
+function showFlashcard(){
+  const container = document.getElementById('flashcardContainer');
+  const card = fcData[fcIndex];
+  container.innerHTML = `
+    <div class="fc-counter">Flashcard ${fcIndex+1} di ${fcData.length} — clicca la carta per vedere la risposta</div>
+    <div class="fc-grid" style="grid-template-columns:1fr;">
+      <div class="fc-card" id="fcSingle" onclick="this.classList.toggle('flipped')">
+        <div class="fc-inner">
+          <div class="fc-front">
+            <div class="fc-label">❓ Domanda</div>
+            <div class="fc-text">${card.q}</div>
+            <div class="fc-hint">tocca per girare →</div>
+          </div>
+          <div class="fc-back">
+            <div class="fc-label">💡 Risposta</div>
+            <div class="fc-text">${card.a}</div>
+            <div class="fc-hint">← tocca per tornare</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fc-nav">
+      <button onclick="fcNav(-1)" ${fcIndex===0?'disabled style="opacity:.35"':''}>← Precedente</button>
+      <span class="fc-progress">${fcIndex+1} / ${fcData.length}</span>
+      <button onclick="fcNav(1)" ${fcIndex===fcData.length-1?'disabled style="opacity:.35"':''}>Prossima →</button>
+    </div>
+    <div style="margin-top:14px;text-align:center;">
+      <button class="btn btn-secondary" onclick="showAllFlashcards()" style="font-size:.8rem;">
+        📋 Vedi tutte le flashcard
+      </button>
+    </div>
+  `;
+}
+
+function fcNav(dir){
+  fcIndex = Math.max(0, Math.min(fcData.length-1, fcIndex+dir));
+  showFlashcard();
+}
+
+function showAllFlashcards(){
+  const container = document.getElementById('flashcardContainer');
+  let html = `<div class="fc-grid">`;
+  fcData.forEach((card, i) => {
+    html += `
+      <div class="fc-card" onclick="this.classList.toggle('flipped')">
+        <div class="fc-inner">
+          <div class="fc-front">
+            <div class="fc-label">❓ Domanda ${i+1}</div>
+            <div class="fc-text">${card.q}</div>
+            <div class="fc-hint">tocca per la risposta →</div>
+          </div>
+          <div class="fc-back">
+            <div class="fc-label">💡 Risposta</div>
+            <div class="fc-text">${card.a}</div>
+            <div class="fc-hint">← tocca per tornare</div>
+          </div>
+        </div>
+      </div>`;
+  });
+  html += `</div>
+    <div style="margin-top:16px;text-align:center;">
+      <button class="btn btn-secondary" onclick="showFlashcard()" style="font-size:.8rem;">
+        ← Torna alla navigazione
+      </button>
+    </div>`;
+  container.innerHTML = html;
+}
+
+/* ── API KEY MANAGEMENT (Groq) ── */
+let apiKey = sessionStorage.getItem('edunity_groq_key') || '';
+window.addEventListener('DOMContentLoaded', ()=>{
+  if(apiKey){
+    document.getElementById('apiKeyInput').value = apiKey;
+    updateKeyStatus(apiKey);
+  }
+});
+
+function saveKey(val){
+  apiKey = val.trim();
+  sessionStorage.setItem('edunity_groq_key', apiKey);
+  updateKeyStatus(apiKey);
+}
+
+function updateKeyStatus(k){
+  const el = document.getElementById('keyStatus');
+  if(k.startsWith('gsk_') && k.length > 20){
+    el.textContent = '✓';
+    el.style.color = 'var(--accent)';
+  } else if(k.length > 0){
+    el.textContent = '✗';
+    el.style.color = 'var(--danger)';
+  } else {
+    el.textContent = '—';
+    el.style.color = 'var(--muted)';
+  }
+}
+
+async function runTool(type){
+  const text = transcript.trim() || document.getElementById('manualText').value.trim();
+  if(!text){
+    showToast('Prima registra o incolla del testo!');
+    return;
+  }
+  if(!apiKey || !apiKey.startsWith('gsk_')){
+    showToast('Inserisci la tua Groq API Key in alto a destra!');
+    document.getElementById('apiKeyInput').focus();
+    return;
+  }
+
+  const cfg = TOOL_CONFIG[type];
+  const card = document.getElementById('outputCard');
+  const body = document.getElementById('outputBody');
+  const fcContainer = document.getElementById('flashcardContainer');
+  const titleEl = document.getElementById('outputTitle');
+
+  // Reset state
+  body.style.display = 'block';
+  fcContainer.style.display = 'none';
+  body.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+  const resolvedTitle = typeof cfg.title === 'function' ? cfg.title(summaryMode) : cfg.title;
+  titleEl.textContent = resolvedTitle;
+  card.classList.add('visible');
+  card.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  const promptText = type === 'summary'
+    ? cfg.prompt(text, summaryMode)
+    : cfg.prompt(text);
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 1500,
+        temperature: 0.7,
+        messages: [
+          {
+            role: 'system',
+            content: 'Sei un assistente pedagogico specializzato per studenti italiani con DSA e studenti-atleti. Rispondi sempre in italiano.'
+          },
+          { role: 'user', content: promptText }
+        ]
+      })
+    });
+
+    if(!response.ok){
+      const err = await response.json();
+      throw new Error(err.error?.message || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    const raw = data.choices?.[0]?.message?.content || 'Nessuna risposta.';
+
+    if(type === 'flashcard'){
+      const cards = parseFlashcards(raw);
+      if(cards.length > 0){
+        body.style.display = 'none';
+        renderFlashcards(cards);
+      } else {
+        body.innerHTML = formatOutput(raw);
+      }
+    } else {
+      body.innerHTML = formatOutput(raw);
+    }
+
+  } catch(err) {
+    body.style.display = 'block';
+    fcContainer.style.display = 'none';
+    body.innerHTML = `<span style="color:var(--danger)">⚠ Errore: ${err.message}</span>
+      <p style="margin-top:12px;font-size:.82rem;color:var(--muted);">
+        Verifica che la API key sia corretta (deve iniziare con <code>gsk_</code>).<br>
+        Ottieni la tua key gratuita su <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent2)">console.groq.com/keys</a>
+      </p>`;
+  }
+}
+
+function formatOutput(raw){
+  let html = raw
+    .replace(/##\s(.+)/g, '<h2>$1</h2>')
+    .replace(/###\s(.+)/g, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^[-•]\s/gm, '• ')
+    .replace(/\n{2,}/g, '\n\n')
+    .split('\n').map(line=>{
+      if(line.startsWith('•')) return `<li>${line.slice(2)}</li>`;
+      return line;
+    }).join('\n')
+    .replace(/((?:<li>.*<\/li>\n?)+)/gs, '<ul>$1</ul>');
+  return html;
+}
+
+function copyOutput(){
+  const text = document.getElementById('outputBody').innerText;
+  navigator.clipboard.writeText(text).then(()=>showToast('Copiato negli appunti!'));
+}
+
+function downloadOutput(){
+  const text = document.getElementById('outputBody').innerText;
+  const title = document.getElementById('outputTitle').innerText;
+  const blob = new Blob([text], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = title.replace(/[^\w\s]/g,'').trim().replace(/\s+/g,'_')+'.txt';
+  a.click();
+  showToast('File scaricato!');
+}
+
+function closeOutput(){
+  document.getElementById('outputCard').classList.remove('visible');
+  document.getElementById('flashcardContainer').style.display = 'none';
+  document.getElementById('outputBody').style.display = 'block';
+}
+
+/* ──────────────────────────────────────────
+   TOAST
+────────────────────────────────────────── */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>
