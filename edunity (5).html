@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EdUnity.beta — Studia Meglio</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{--bg:#0b0e14;--surface:#13171f;--card:#1a1f2b;--border:#252b3b;--accent:#4af4a4;--accent2:#4ab8f4;--accent3:#f4a44a;--text:#e8eaf0;--muted:#6b7280;--danger:#f45a5a;--radius:14px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:200;backdrop-filter:blur(18px);background:rgba(11,14,20,.9);border-bottom:1px solid var(--border);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-.5px;display:flex;align-items:center;gap:8px;white-space:nowrap;flex-shrink:0;}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);}
+.nav-tabs{display:flex;gap:3px;flex-shrink:0;}
+.nav-tab{padding:6px 12px;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .2s;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{background:var(--surface);color:var(--text);border:1px solid var(--border);}
+.key-box{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 10px;flex-shrink:0;}
+.key-box input{background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.77rem;width:140px;}
+#keyStatus{font-size:.73rem;color:var(--muted);}
+
+/* PAGES */
+.page{display:none;position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:28px 18px 80px;}
+.page.active{display:block;}
+.two-col{display:grid;grid-template-columns:1fr 350px;gap:22px;}
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:18px;}
+.section-label{font-family:'Syne',sans-serif;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:9px;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;border:none;cursor:pointer;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#0b0e14;}.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border);}.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger{background:rgba(244,90,90,.1);color:var(--danger);border:1px solid rgba(244,90,90,.2);}.btn-danger:hover{background:rgba(244,90,90,.2);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);padding:5px 11px;font-size:.77rem;}.btn-ghost:hover{color:var(--text);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+
+/* RECORDER */
+.rec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.rec-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;}
+.status-pill{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted);padding:4px 10px;border-radius:20px;border:1px solid var(--border);transition:all .3s;}
+.status-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--muted);transition:all .3s;}
+.status-pill.recording{color:var(--danger);border-color:var(--danger);}.status-pill.recording .dot{background:var(--danger);box-shadow:0 0 7px var(--danger);animation:pulse 1s infinite;}
+.status-pill.done{color:var(--accent);border-color:var(--accent);}.status-pill.done .dot{background:var(--accent);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.waveform{height:52px;background:var(--surface);border-radius:8px;display:flex;align-items:center;gap:2px;padding:7px 12px;margin-bottom:12px;}
+.bar{width:3px;border-radius:3px;background:var(--border);transition:height .1s,background .3s;height:5px;}
+.waveform.active .bar{background:var(--accent);}
+.controls{display:flex;gap:9px;align-items:center;margin-bottom:12px;}
+.timer{margin-left:auto;font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--muted);}
+.timer.active{color:var(--danger);}
+.transcript-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;min-height:100px;max-height:180px;overflow-y:auto;padding:12px 14px;font-size:.87rem;line-height:1.7;}
+.transcript-box .placeholder{color:var(--muted);font-style:italic;}
+
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface);}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent2);background:rgba(74,184,244,.04);}
+.upload-zone .uz-icon{font-size:1.8rem;margin-bottom:6px;}
+.upload-zone strong{font-size:.87rem;}
+.upload-zone p{font-size:.78rem;color:var(--muted);margin-top:4px;}
+.upload-preview{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:10px;}
+.upload-preview img{max-height:50px;max-width:70px;border-radius:6px;object-fit:cover;}
+.file-name{font-size:.83rem;font-weight:500;}.file-size{font-size:.73rem;color:var(--muted);}
+
+/* TOOLS */
+.tool-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:border-color .2s,transform .15s;margin-bottom:9px;}
+.tool-card:last-child{margin-bottom:0;}
+.tool-card:hover{border-color:var(--accent2);transform:translateY(-1px);}
+.tool-top{display:flex;align-items:center;gap:10px;}
+.tool-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.icon-summary{background:rgba(74,244,164,.12);}.icon-map{background:rgba(74,184,244,.12);}.icon-flashcard{background:rgba(244,164,74,.12);}.icon-quiz{background:rgba(244,90,90,.12);}.icon-simplify{background:rgba(180,74,244,.12);}.icon-glossary{background:rgba(250,240,100,.1);}.icon-translate{background:rgba(74,244,200,.1);}
+.tool-name{font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;}
+.tool-desc{font-size:.73rem;color:var(--muted);line-height:1.4;margin-top:1px;}
+.tool-arrow{color:var(--muted);font-size:.9rem;margin-left:auto;transition:color .2s,transform .2s;}
+.tool-card:hover .tool-arrow{color:var(--accent2);transform:translateX(3px);}
+.summary-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:7px;overflow:hidden;width:fit-content;margin-top:9px;}
+.summary-toggle button{padding:5px 13px;font-family:'DM Sans',sans-serif;font-size:.73rem;font-weight:500;border:none;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;}
+.summary-toggle button.active{background:var(--accent);color:#0b0e14;font-weight:700;}
+.lang-select{background:var(--surface);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.77rem;padding:5px 9px;margin-top:9px;outline:none;width:100%;}
+
+/* OUTPUT */
+.output-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;display:none;flex-direction:column;gap:14px;margin-top:18px;}
+.output-card.visible{display:flex;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.output-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;}
+.output-title{font-family:'Syne',sans-serif;font-size:.97rem;font-weight:700;}
+.output-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.output-body{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;font-size:.87rem;line-height:1.8;white-space:pre-wrap;}
+.output-body h2{font-family:'Syne',sans-serif;font-size:.92rem;margin-bottom:6px;color:var(--accent);}
+.output-body h3{font-family:'Syne',sans-serif;font-size:.85rem;margin:11px 0 4px;color:var(--accent2);}
+.output-body ul{padding-left:16px;margin-bottom:7px;}.output-body li{margin-bottom:3px;}
+.output-body strong{color:var(--accent3);}
+.loading-dots{display:flex;gap:6px;align-items:center;justify-content:center;padding:26px;}
+.loading-dots span{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:bounce .7s infinite;}
+.loading-dots span:nth-child(2){animation-delay:.12s;background:var(--accent2);}
+.loading-dots span:nth-child(3){animation-delay:.24s;background:var(--accent3);}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* FLASHCARDS */
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+.fc-card{perspective:900px;height:165px;cursor:pointer;}
+.fc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);border-radius:10px;}
+.fc-card.flipped .fc-inner{transform:rotateY(180deg);}
+.fc-front,.fc-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:10px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;}
+.fc-front{background:var(--surface);border:1px solid var(--border);}
+.fc-back{background:linear-gradient(135deg,rgba(74,244,164,.1),rgba(74,184,244,.08));border:1px solid rgba(74,244,164,.3);transform:rotateY(180deg);}
+.fc-label{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+.fc-front .fc-label{color:var(--accent2);}.fc-back .fc-label{color:var(--accent);}
+.fc-text{font-size:.84rem;line-height:1.5;flex:1;display:flex;align-items:center;margin:7px 0;}
+.fc-hint{font-size:.62rem;color:var(--muted);text-align:right;}
+.fc-nav{display:flex;gap:9px;align-items:center;justify-content:center;margin-top:12px;}
+.fc-nav button{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 14px;font-size:.78rem;cursor:pointer;transition:border-color .2s,color .2s;}
+.fc-nav button:hover{border-color:var(--accent);color:var(--accent);}
+.fc-progress{font-family:'Syne',sans-serif;font-size:.77rem;color:var(--muted);min-width:50px;text-align:center;}
+
+/* GLOSSARY */
+.glossary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:9px;}
+.glossary-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 13px;}
+.glossary-term{font-family:'Syne',sans-serif;font-size:.83rem;font-weight:700;color:var(--accent3);margin-bottom:4px;}
+.glossary-def{font-size:.77rem;color:var(--text);line-height:1.5;}
+
+/* ARCHIVE */
+.archive-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.archive-title{font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;}
+.materia-filter{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+.materia-chip{padding:5px 13px;border-radius:18px;font-size:.73rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .2s;}
+.materia-chip.active{background:var(--accent);color:#0b0e14;border-color:var(--accent);}
+.lesson-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:13px;}
+.lesson-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:border-color .2s,transform .15s;}
+.lesson-card:hover{border-color:var(--accent2);transform:translateY(-2px);}
+.lesson-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;gap:8px;}
+.lesson-card-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;flex:1;}
+.lesson-materia{font-size:.66rem;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:10px;background:rgba(74,184,244,.1);color:var(--accent2);white-space:nowrap;flex-shrink:0;}
+.lesson-preview{font-size:.77rem;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.lesson-meta{display:flex;align-items:center;justify-content:space-between;margin-top:9px;font-size:.7rem;color:var(--muted);}
+.empty-archive{text-align:center;padding:56px 20px;color:var(--muted);}
+.empty-archive .eicon{font-size:2.8rem;margin-bottom:10px;}
+.lesson-detail{display:none;}
+.lesson-detail.active{display:block;animation:fadeUp .3s ease;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:26px;width:min(400px,100%);display:flex;flex-direction:column;gap:14px;}
+.modal-title{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-label{font-size:.76rem;color:var(--muted);}
+.form-input{background:var(--surface);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.87rem;padding:9px 12px;outline:none;transition:border-color .2s;width:100%;}
+.form-input:focus{border-color:var(--accent2);}
+.materia-options{display:flex;flex-wrap:wrap;gap:6px;}
+.materia-opt{padding:4px 12px;border-radius:14px;font-size:.73rem;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .2s;}
+.materia-opt.sel{background:var(--accent2);color:#0b0e14;border-color:var(--accent2);font-weight:700;}
+.modal-actions{display:flex;gap:9px;justify-content:flex-end;}
+
+/* PROFILE */
+.profile-hero{background:linear-gradient(135deg,rgba(74,244,164,.07),rgba(74,184,244,.05));border:1px solid var(--border);border-radius:14px;padding:24px;display:flex;align-items:center;gap:18px;margin-bottom:20px;}
+.avatar{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-family:'Syne',sans-serif;font-weight:800;color:#0b0e14;flex-shrink:0;}
+.profile-name{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;}
+.profile-sub{font-size:.8rem;color:var(--muted);margin-top:2px;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;}
+.stat-num{font-family:'Syne',sans-serif;font-size:1.7rem;font-weight:800;color:var(--accent);}
+.stat-label{font-size:.73rem;color:var(--muted);margin-top:3px;}
+.settings-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);gap:12px;}
+.settings-row:last-child{border-bottom:none;}
+.settings-label{font-size:.86rem;}.settings-sub{font-size:.73rem;color:var(--muted);margin-top:2px;}
+
+/* FOOTER & TOAST */
+footer{position:relative;z-index:1;text-align:center;padding:18px;color:var(--muted);font-size:.7rem;border-top:1px solid var(--border);}
+footer span{color:var(--accent);}
+.toast{position:fixed;bottom:22px;right:22px;z-index:999;background:var(--card);border:1px solid var(--accent);border-radius:8px;padding:9px 15px;font-size:.82rem;color:var(--accent);display:flex;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(0,0,0,.4);transform:translateY(70px);opacity:0;transition:all .3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Ed<span style="color:var(--accent)">U</span>nity<span style="font-size:.58rem;font-weight:600;color:var(--accent3);background:rgba(244,164,74,.12);border:1px solid rgba(244,164,74,.3);border-radius:5px;padding:2px 6px;margin-left:6px;letter-spacing:.05em;vertical-align:middle;">.beta</span>
+  </div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="goPage('home')">🏠 Studio</button>
+    <button class="nav-tab" onclick="goPage('archive')">📚 Archivio</button>
+    <button class="nav-tab" onclick="goPage('profile')">👤 Profilo</button>
+  </nav>
+  <div class="key-box">
+    <span style="font-size:.7rem;color:var(--muted);white-space:nowrap;">🔑 Groq</span>
+    <input id="apiKeyInput" type="password" placeholder="gsk_..." oninput="saveKey(this.value)"/>
+    <span id="keyStatus">—</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════════ HOME ═══════════════════════════ -->
+<div class="page active" id="page-home">
+  <div class="two-col">
+
+    <!-- LEFT -->
+    <div>
+      <!-- RECORDER -->
+      <div class="card">
+        <div class="rec-header">
+          <div class="rec-title">🎙 Registra la lezione</div>
+          <div class="status-pill" id="statusPill"><div class="dot"></div><span id="statusText">In attesa</span></div>
+        </div>
+        <div class="waveform" id="waveform"></div>
+        <div class="controls">
+          <button class="btn btn-primary" id="btnRecord" onclick="toggleRecord()"><span id="btnIcon">⏺</span><span id="btnLabel">Inizia</span></button>
+          <button class="btn btn-danger" id="btnStop" onclick="stopRecord()" disabled>⏹ Stop</button>
+          <div class="timer" id="timer">00:00</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="section-label" style="margin-bottom:0;">Trascrizione</div>
+          <button class="btn btn-danger" onclick="clearTranscript()" style="padding:3px 9px;font-size:.71rem;">🗑 Cancella</button>
+        </div>
+        <div class="transcript-box" id="transcriptBox"><span class="placeholder">La trascrizione apparirà qui mentre parli…</span></div>
+      </div>
+
+      <!-- UPLOAD PDF / IMMAGINI -->
+      <div class="card">
+        <div class="section-label">📎 Carica Appunti o PDF</div>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+          <div class="uz-icon">📄</div>
+          <strong>Trascina qui o clicca per caricare</strong>
+          <p>Foto appunti (JPG, PNG) · PDF libro di testo</p>
+        </div>
+        <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none" onchange="handleFile(this.files[0])"/>
+        <div id="uploadPreview" style="display:none;" class="upload-preview">
+          <img id="previewImg" src="" alt="" style="max-height:50px;max-width:68px;border-radius:5px;object-fit:cover;"/>
+          <div style="flex:1;"><div class="file-name" id="fileName">—</div><div class="file-size" id="fileSize">—</div></div>
+          <button class="btn btn-danger" onclick="clearUpload()" style="padding:4px 9px;font-size:.73rem;">✕</button>
+        </div>
+        <div id="uploadProgress" style="display:none;margin-top:10px;text-align:center;">
+          <div class="loading-dots"><span></span><span></span><span></span></div>
+          <p style="font-size:.78rem;color:var(--muted);" id="uploadStatus">Elaborazione…</p>
+        </div>
+      </div>
+
+      <!-- MANUALE -->
+      <div class="card">
+        <div class="section-label">✏️ Testo manuale</div>
+        <textarea id="manualText" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.87rem;line-height:1.6;padding:11px 13px;resize:vertical;min-height:90px;outline:none;transition:border-color .2s;" placeholder="Incolla appunti, testi o qualsiasi contenuto…" onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        <div style="display:flex;gap:9px;margin-top:10px;">
+          <button class="btn btn-secondary" onclick="useManualText()">Usa questo testo →</button>
+          <button class="btn btn-danger" onclick="clearManual()" style="padding:7px 12px;">🗑</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT — TOOLS -->
+    <div>
+      <div class="section-label">🤖 Strumenti AI</div>
+
+      <div class="tool-card" id="summaryCard">
+        <div class="tool-top" onclick="runTool('summary')">
+          <div class="tool-icon icon-summary">📝</div>
+          <div class="tool-info"><div class="tool-name">Riassunto</div><div class="tool-desc">Sintesi strutturata per DSA</div></div>
+          <div class="tool-arrow">→</div>
+        </div>
+        <div class="summary-toggle" onclick="event.stopPropagation()">
+          <button class="active" id="btnVeloce" onclick="setSummaryMode('veloce')">⚡ Veloce</button>
+          <button id="btnDettagliato" onclick="setSummaryMode('dettagliato')">📖 Dettagliato</button>
+        </div>
+      </div>
+
+      <div class="tool-card" onclick="runTool('mindmap')">
+        <div class="tool-top">
+          <div class="tool-icon icon-map">🗺</div>
+          <div class="tool-info"><div class="tool-name">Mappa Concettuale</div><div class="tool-desc">Schema gerarchico dei concetti</div></div>
+          <div class="tool-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="tool-card" onclick="runTool('flashcard')">
+        <div class="tool-top">
+          <div class="tool-icon icon-flashcard">🃏</div>
+          <div class="tool-info"><div class="tool-name">Flashcard</div><div class="tool-desc">Carte domanda/risposta interattive</div></div>
+          <div class="tool-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="tool-card" onclick="runTool('quiz')">
+        <div class="tool-top">
+          <div class="tool-icon icon-quiz">❓</div>
+          <div class="tool-info"><div class="tool-name">Quiz</div><div class="tool-desc">5 domande a scelta multipla</div></div>
+          <div class="tool-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="tool-card" onclick="runTool('simplify')">
+        <div class="tool-top">
+          <div class="tool-icon icon-simplify">✨</div>
+          <div class="tool-info"><div class="tool-name">Semplifica (DSA)</div><div class="tool-desc">Frasi brevi, linguaggio accessibile</div></div>
+          <div class="tool-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="tool-card" onclick="runTool('glossary')">
+        <div class="tool-top">
+          <div class="tool-icon icon-glossary">📖</div>
+          <div class="tool-info"><div class="tool-name">Glossario Termini</div><div class="tool-desc">Estrae e spiega le parole difficili</div></div>
+          <div class="tool-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="tool-card" id="translateCard">
+        <div class="tool-top" onclick="runTool('translate')">
+          <div class="tool-icon icon-translate">🌍</div>
+          <div class="tool-info"><div class="tool-name">Traduzione</div><div class="tool-desc">Traduci in un'altra lingua</div></div>
+          <div class="tool-arrow">→</div>
+        </div>
+        <select class="lang-select" id="targetLang" onclick="event.stopPropagation()">
+          <option value="inglese">🇬🇧 Inglese</option>
+          <option value="francese">🇫🇷 Francese</option>
+          <option value="spagnolo">🇪🇸 Spagnolo</option>
+          <option value="tedesco">🇩🇪 Tedesco</option>
+          <option value="italiano">🇮🇹 Italiano</option>
+          <option value="portoghese">🇵🇹 Portoghese</option>
+          <option value="arabo">🇸🇦 Arabo</option>
+          <option value="cinese">🇨🇳 Cinese</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="output-card" id="outputCard">
+    <div class="output-header">
+      <div class="output-title" id="outputTitle">Risultato</div>
+      <div class="output-actions">
+        <button class="btn btn-secondary" onclick="openSaveModal()">💾 Salva</button>
+        <button class="btn btn-secondary" onclick="copyOutput()">📋 Copia</button>
+        <button class="btn btn-secondary" onclick="downloadOutput()">⬇ .txt</button>
+        <button class="btn btn-ghost" onclick="closeOutput()">✕</button>
+      </div>
+    </div>
+    <div id="outputBody" class="output-body"></div>
+    <div id="flashcardContainer" style="display:none;"></div>
+    <div id="glossaryContainer" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ ARCHIVE ═══════════════════════════ -->
+<div class="page" id="page-archive">
+  <div class="archive-header">
+    <div class="archive-title">📚 Archivio Lezioni</div>
+    <button class="btn btn-ghost" onclick="renderArchive()">🔄 Aggiorna</button>
+  </div>
+  <div class="materia-filter" id="materiaFilter"></div>
+  <div id="archiveContent"></div>
+  <div id="lessonDetail" class="lesson-detail"></div>
+</div>
+
+<!-- ═══════════════════════════ PROFILE ═══════════════════════════ -->
+<div class="page" id="page-profile">
+  <div class="profile-hero">
+    <div class="avatar" id="avatarEl">?</div>
+    <div>
+      <div class="profile-name" id="profileNameDisplay">Imposta il tuo nome</div>
+      <div class="profile-sub" id="profileSub">EdUnity · Studente</div>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="statLezioni">0</div><div class="stat-label">Lezioni salvate</div></div>
+    <div class="stat-card"><div class="stat-num" id="statMaterie">0</div><div class="stat-label">Materie</div></div>
+    <div class="stat-card"><div class="stat-num" id="statAI">0</div><div class="stat-label">Strumenti usati</div></div>
+  </div>
+  <div class="settings-card">
+    <div class="section-label">Dati Personali</div>
+    <div class="settings-row">
+      <div><div class="settings-label">Nome</div><div class="settings-sub">Visualizzato nell'app</div></div>
+      <input class="form-input" id="profileName" placeholder="Il tuo nome" style="width:170px;" oninput="saveProfile()"/>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-label">Tipo di studente</div></div>
+      <select class="lang-select" id="profileType" style="width:170px;" onchange="saveProfile()">
+        <option value="standard">Standard</option>
+        <option value="dsa">Con DSA</option>
+        <option value="atleta">Studente-Atleta</option>
+        <option value="entrambi">DSA + Atleta</option>
+      </select>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-label">Classe / Anno</div></div>
+      <input class="form-input" id="profileClasse" placeholder="es. 3° Liceo" style="width:170px;" oninput="saveProfile()"/>
+    </div>
+  </div>
+  <div class="settings-card">
+    <div class="section-label">Dati &amp; Privacy</div>
+    <div class="settings-row">
+      <div><div class="settings-label">Tutti i dati sono locali</div><div class="settings-sub">Nessun server — tutto sul tuo dispositivo</div></div>
+      <span style="font-size:.78rem;color:var(--accent);">✓ Locale</span>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-label">Cancella archivio</div><div class="settings-sub">Azione irreversibile</div></div>
+      <button class="btn btn-danger" onclick="clearArchive()" style="padding:5px 12px;font-size:.77rem;">🗑 Cancella tutto</button>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-label">Esporta archivio</div><div class="settings-sub">Scarica come JSON</div></div>
+      <button class="btn btn-secondary" onclick="exportArchive()" style="padding:5px 12px;font-size:.77rem;">⬇ Esporta</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <div class="modal-title">💾 Salva in Archivio</div>
+    <div class="form-group">
+      <label class="form-label">Titolo lezione</label>
+      <input class="form-input" id="saveTitle" placeholder="es. Fotosintesi clorofilliana"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Materia</label>
+      <div class="materia-options">
+        <button class="materia-opt" onclick="selectMateria(this,'Biologia')">🧬 Biologia</button>
+        <button class="materia-opt" onclick="selectMateria(this,'Matematica')">📐 Matematica</button>
+        <button class="materia-opt" onclick="selectMateria(this,'Storia')">📜 Storia</button>
+        <button class="materia-opt" onclick="selectMateria(this,'Fisica')">⚡ Fisica</button>
+        <button class="materia-opt" onclick="selectMateria(this,'Italiano')">✍️ Italiano</button>
+        <button class="materia-opt" onclick="selectMateria(this,'Inglese')">🇬🇧 Inglese</button>
+        <button class="materia-opt" onclick="selectMateria(this,'Chimica')">🧪 Chimica</button>
+        <button class="materia-opt" onclick="selectMateria(this,'Filosofia')">🤔 Filosofia</button>
+        <button class="materia-opt" onclick="selectMateria(this,'Altro')">📁 Altro</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (opzionale)</label>
+      <input class="form-input" id="saveNote" placeholder="es. Capitolo 4"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSaveModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="confirmSave()">💾 Salva</button>
+    </div>
+  </div>
+</div>
+
+<footer>EdUnity — <span>Startup fondata a Torino</span> · Strumenti digitali per studenti DSA e studenti‑atleti</footer>
+<div class="toast" id="toast">✓ <span id="toastMsg"></span></div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ── NAVIGATION ── */
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const map={home:0,archive:1,profile:2};
+  document.querySelectorAll('.nav-tab')[map[id]].classList.add('active');
+  if(id==='archive') renderArchive();
+  if(id==='profile') renderProfile();
+}
+
+/* ── API KEY ── */
+let apiKey=localStorage.getItem('edunity_groq_key')||'';
+window.addEventListener('DOMContentLoaded',()=>{
+  if(apiKey){document.getElementById('apiKeyInput').value=apiKey;updateKeyStatus(apiKey);}
+  loadProfile();
+});
+function saveKey(v){apiKey=v.trim();localStorage.setItem('edunity_groq_key',apiKey);updateKeyStatus(apiKey);}
+function updateKeyStatus(k){
+  const el=document.getElementById('keyStatus');
+  if(k.startsWith('gsk_')&&k.length>20){el.textContent='✓';el.style.color='var(--accent)';}
+  else if(k.length>0){el.textContent='✗';el.style.color='var(--danger)';}
+  else{el.textContent='—';el.style.color='var(--muted)';}
+}
+
+/* ── WAVEFORM ── */
+const wf=document.getElementById('waveform');
+for(let i=0;i<36;i++){const b=document.createElement('div');b.className='bar';wf.appendChild(b);}
+const bars=wf.querySelectorAll('.bar');
+let wfInt=null;
+function animateBars(){wfInt=setInterval(()=>bars.forEach(b=>b.style.height=(Math.random()*34+4)+'px'),80);}
+function stopBars(){clearInterval(wfInt);bars.forEach(b=>b.style.height='5px');}
+
+/* ── TIMER ── */
+let timerSec=0,timerInt=null;
+const timerEl=document.getElementById('timer');
+function startTimer(){timerInt=setInterval(()=>{timerSec++;const m=String(Math.floor(timerSec/60)).padStart(2,'0'),s=String(timerSec%60).padStart(2,'0');timerEl.textContent=m+':'+s;},1000);}
+function stopTimer(){clearInterval(timerInt);timerSec=0;timerEl.textContent='00:00';}
+
+/* ── RECORDER ── */
+let recognition=null,isRecording=false,transcript='';
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function toggleRecord(){isRecording?pauseRecord():startRecord();}
+function startRecord(){
+  if(!SR){showToast('Browser non supportato. Usa Chrome.');return;}
+  recognition=new SR();recognition.lang='it-IT';recognition.continuous=true;recognition.interimResults=true;
+  recognition.onresult=e=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal)transcript+=e.results[i][0].transcript+' ';
+      else interim+=e.results[i][0].transcript;
+    }
+    renderTranscript(transcript,interim);
+  };
+  recognition.onerror=e=>{if(e.error==='not-allowed')showToast('Accesso microfono negato.');stopRecord();};
+  recognition.start();isRecording=true;
+  document.getElementById('btnStop').disabled=false;
+  document.getElementById('btnIcon').textContent='⏸';
+  document.getElementById('btnLabel').textContent='Pausa';
+  document.getElementById('statusPill').className='status-pill recording';
+  document.getElementById('statusText').textContent='In registrazione';
+  timerEl.className='timer active';
+  wf.classList.add('active');animateBars();startTimer();
+}
+function pauseRecord(){
+  if(recognition)recognition.stop();isRecording=false;
+  document.getElementById('btnIcon').textContent='⏺';
+  document.getElementById('btnLabel').textContent='Riprendi';
+  document.getElementById('statusPill').className='status-pill';
+  document.getElementById('statusText').textContent='In pausa';
+  timerEl.className='timer';wf.classList.remove('active');stopBars();clearInterval(timerInt);
+}
+function stopRecord(){
+  if(recognition){recognition.stop();recognition=null;}isRecording=false;
+  document.getElementById('btnStop').disabled=true;
+  document.getElementById('btnIcon').textContent='⏺';
+  document.getElementById('btnLabel').textContent='Inizia';
+  document.getElementById('statusPill').className='status-pill done';
+  document.getElementById('statusText').textContent='Completata';
+  timerEl.className='timer';wf.classList.remove('active');stopBars();stopTimer();
+  if(transcript.trim())showToast('Trascrizione completata!');
+}
+function renderTranscript(final,interim){
+  const box=document.getElementById('transcriptBox');box.innerHTML='';
+  if(final){const p=document.createElement('p');p.textContent=final;box.appendChild(p);}
+  if(interim){const p=document.createElement('p');p.style.color='var(--muted)';p.style.fontStyle='italic';p.textContent=interim;box.appendChild(p);}
+  box.scrollTop=box.scrollHeight;
+}
+function clearTranscript(){
+  transcript='';
+  document.getElementById('transcriptBox').innerHTML='<span class="placeholder">La trascrizione apparirà qui mentre parli…</span>';
+  document.getElementById('statusPill').className='status-pill';
+  document.getElementById('statusText').textContent='In attesa';
+  showToast('Trascrizione cancellata.');
+}
+function useManualText(){
+  const t=document.getElementById('manualText').value.trim();
+  if(!t){showToast('Inserisci del testo prima.');return;}
+  transcript=t;
+  const box=document.getElementById('transcriptBox');box.innerHTML='';
+  const p=document.createElement('p');p.textContent=t.slice(0,300)+(t.length>300?'…':'');box.appendChild(p);
+  document.getElementById('statusPill').className='status-pill done';
+  document.getElementById('statusText').textContent='Testo caricato';
+  showToast('Testo caricato!');
+}
+function clearManual(){document.getElementById('manualText').value='';showToast('Testo cancellato.');}
+
+/* ── FILE UPLOAD ── */
+let uploadedImgB64=null;
+function dragOver(e){e.preventDefault();document.getElementById('uploadZone').classList.add('drag');}
+function dragLeave(){document.getElementById('uploadZone').classList.remove('drag');}
+function dropFile(e){e.preventDefault();dragLeave();handleFile(e.dataTransfer.files[0]);}
+
+async function handleFile(file){
+  if(!file)return;
+  uploadedImgB64=null;
+  document.getElementById('fileName').textContent=file.name;
+  document.getElementById('fileSize').textContent=(file.size/1024).toFixed(1)+' KB';
+  document.getElementById('uploadPreview').style.display='flex';
+  document.getElementById('uploadProgress').style.display='block';
+
+  if(file.type.startsWith('image/')){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      document.getElementById('previewImg').src=e.target.result;
+      uploadedImgB64=e.target.result.split(',')[1];
+      document.getElementById('uploadStatus').textContent='✓ Immagine pronta — usa uno strumento AI per analizzarla';
+      setTimeout(()=>document.getElementById('uploadProgress').style.display='none',2000);
+    };
+    reader.readAsDataURL(file);
+  } else if(file.type==='application/pdf'){
+    document.getElementById('previewImg').src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ctext y='32' font-size='32'%3E%F0%9F%93%84%3C/text%3E%3C/svg%3E";
+    document.getElementById('uploadStatus').textContent='Estrazione testo PDF…';
+    try{
+      const ab=await file.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument({data:ab}).promise;
+      let text='';
+      for(let i=1;i<=pdf.numPages;i++){
+        const page=await pdf.getPage(i);
+        const content=await page.getTextContent();
+        text+=content.items.map(it=>it.str).join(' ')+'\n';
+      }
+      text=text.trim();
+      transcript=text;
+      const box=document.getElementById('transcriptBox');box.innerHTML='';
+      const p=document.createElement('p');p.textContent=text.slice(0,400)+'…';box.appendChild(p);
+      document.getElementById('statusPill').className='status-pill done';
+      document.getElementById('statusText').textContent='PDF caricato';
+      document.getElementById('uploadStatus').textContent='✓ PDF estratto ('+pdf.numPages+' pagine)';
+      setTimeout(()=>document.getElementById('uploadProgress').style.display='none',2000);
+      showToast('PDF estratto — '+pdf.numPages+' pagine!');
+    }catch(err){document.getElementById('uploadStatus').textContent='⚠ Errore: '+err.message;}
+  }
+}
+function clearUpload(){
+  uploadedImgB64=null;
+  document.getElementById('uploadPreview').style.display='none';
+  document.getElementById('uploadProgress').style.display='none';
+  document.getElementById('fileInput').value='';
+  showToast('File rimosso.');
+}
+
+/* ── GROQ CALL ── */
+async function callGroq(messages,maxTokens=1500,model='llama-3.3-70b-versatile'){
+  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+    body:JSON.stringify({model,max_tokens:maxTokens,temperature:0.7,messages})
+  });
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'HTTP '+res.status);}
+  const d=await res.json();
+  return d.choices?.[0]?.message?.content||'';
+}
+
+/* ── TOOLS ── */
+let summaryMode='veloce',lastRawOutput='',lastOutputTitle='';
+function setSummaryMode(m){
+  summaryMode=m;
+  document.getElementById('btnVeloce').classList.toggle('active',m==='veloce');
+  document.getElementById('btnDettagliato').classList.toggle('active',m==='dettagliato');
+}
+function getActiveText(){return transcript.trim()||document.getElementById('manualText').value.trim();}
+
+const PROMPTS={
+  summary:(t,mode)=>mode==='veloce'
+    ?`Crea un RIASSUNTO VELOCE: max 5 punti chiave (frasi brevi), 1 frase "Da ricordare". Usa **grassetto** per termini chiave.\nTesto:"""${t}"""`
+    :`Crea un RIASSUNTO DETTAGLIATO:\n## Titolo\nIntroduzione (2-3 righe)\n## Punti Principali\n- con dettaglio\n## Approfondimenti\n## Conclusione\nUsa **grassetto**.\nTesto:"""${t}"""`,
+  mindmap:t=>`Estrai MAPPA CONCETTUALE ASCII:\nCONCETTO CENTRALE\n├── Tema 1\n│   ├── A\n│   └── B\n└── Tema 2\nTesto:"""${t}"""`,
+  flashcard:t=>`Crea 8 FLASHCARD. Formato ESATTO:\nDOMANDA: [domanda]\nRISPOSTA: [risposta]\n---\n(ripeti 8 volte)\nTesto:"""${t}"""`,
+  quiz:t=>`Crea QUIZ 5 domande A/B/C/D:\n**Domanda 1:** ...\nA) B) C) D)\n✅ Risposta: [lettera] — [spiegazione]\nTesto:"""${t}"""`,
+  simplify:t=>`Riscrivi per studenti con DSA: frasi brevi max 15 parole, una idea per frase, parole comuni, elenchi puntati. Mantieni tutti i contenuti.\nTesto:"""${t}"""`,
+  glossary:t=>`Estrai le 12 parole più difficili/tecniche e spiega ciascuna semplicemente.\nRispondi SOLO con JSON array (nessun testo prima/dopo):\n[{"term":"parola","def":"spiegazione 1-2 frasi"}]\nTesto:"""${t}"""`,
+  translate:(t,lang)=>`Traduci in ${lang}. Mantieni la formattazione. SOLO la traduzione, senza commenti.\nTesto:"""${t}"""`
+};
+
+async function runTool(type){
+  if(!apiKey||!apiKey.startsWith('gsk_')){showToast('Inserisci la Groq API Key in alto!');document.getElementById('apiKeyInput').focus();return;}
+
+  const card=document.getElementById('outputCard');
+  const body=document.getElementById('outputBody');
+  const fc=document.getElementById('flashcardContainer');
+  const gl=document.getElementById('glossaryContainer');
+  const titleEl=document.getElementById('outputTitle');
+  const titles={summary:summaryMode==='veloce'?'⚡ Riassunto Veloce':'📖 Riassunto Dettagliato',mindmap:'🗺 Mappa Concettuale',flashcard:'🃏 Flashcard',quiz:'❓ Quiz',simplify:'✨ Testo Semplificato',glossary:'📖 Glossario',translate:'🌍 Traduzione'};
+  lastOutputTitle=titles[type]||'Risultato';
+  titleEl.textContent=lastOutputTitle;
+  body.style.display='block';fc.style.display='none';gl.style.display='none';
+  body.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>';
+  card.classList.add('visible');
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  try{
+    let messages=[{role:'system',content:'Sei un assistente pedagogico per studenti italiani con DSA e studenti-atleti. Rispondi sempre in italiano salvo per le traduzioni.'}];
+
+    // Image OCR via Groq vision
+    if(uploadedImgB64&&type!=='translate'){
+      try{
+        body.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>';
+        const ocrRes=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+          method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+          body:JSON.stringify({model:'llama-3.2-11b-vision-preview',max_tokens:2000,messages:[{role:'user',content:[
+            {type:'image_url',image_url:{url:'data:image/jpeg;base64,'+uploadedImgB64}},
+            {type:'text',text:'Trascrivi tutto il testo visibile in questi appunti. Mantieni la struttura.'}
+          ]}]})
+        });
+        if(ocrRes.ok){
+          const od=await ocrRes.json();
+          const ocrText=od.choices?.[0]?.message?.content||'';
+          if(ocrText.length>20){transcript=ocrText;showToast('OCR completato!');}
+        }
+      }catch(e){console.warn('OCR fallito',e);}
+    }
+
+    const text=getActiveText();
+    if(!text){body.innerHTML='<span style="color:var(--muted)">Nessun testo disponibile. Registra, carica un file o incolla del testo.</span>';return;}
+
+    let prompt='';
+    if(type==='summary')prompt=PROMPTS.summary(text,summaryMode);
+    else if(type==='translate')prompt=PROMPTS.translate(text,document.getElementById('targetLang').value);
+    else prompt=PROMPTS[type](text);
+
+    messages.push({role:'user',content:prompt});
+    const raw=await callGroq(messages,1600);
+    lastRawOutput=raw;
+    incrementAICount();
+
+    if(type==='flashcard'){const cards=parseFlashcards(raw);if(cards.length>0){body.style.display='none';renderFlashcards(cards);return;}}
+    if(type==='glossary'){const items=parseGlossary(raw);if(items.length>0){body.style.display='none';renderGlossary(items);return;}}
+    body.innerHTML=formatOutput(raw);
+  }catch(err){
+    body.innerHTML=`<span style="color:var(--danger)">⚠ Errore: ${err.message}</span><p style="margin-top:9px;font-size:.78rem;color:var(--muted);">Verifica la API key su <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent2)">console.groq.com/keys</a></p>`;
+  }
+}
+
+function formatOutput(raw){
+  return raw
+    .replace(/##\s(.+)/g,'<h2>$1</h2>')
+    .replace(/###\s(.+)/g,'<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^[-•]\s/gm,'• ')
+    .split('\n').map(l=>l.startsWith('• ')?`<li>${l.slice(2)}</li>`:l).join('\n')
+    .replace(/((?:<li>.*<\/li>\n?)+)/gs,'<ul>$1</ul>');
+}
+
+/* ── FLASHCARDS ── */
+let fcData=[],fcIndex=0;
+function parseFlashcards(raw){
+  return raw.split('---').map(b=>b.trim()).filter(Boolean).map(block=>{
+    const d=block.match(/DOMANDA:\s*(.+?)(?=RISPOSTA:|$)/s);
+    const r=block.match(/RISPOSTA:\s*(.+)/s);
+    return d&&r?{q:d[1].trim(),a:r[1].trim()}:null;
+  }).filter(Boolean);
+}
+function renderFlashcards(cards){fcData=cards;fcIndex=0;document.getElementById('flashcardContainer').style.display='block';showFlashcard();}
+function showFlashcard(){
+  const c=document.getElementById('flashcardContainer');
+  const card=fcData[fcIndex];
+  c.innerHTML=`<p style="font-size:.73rem;color:var(--muted);margin-bottom:11px;">Flashcard ${fcIndex+1} di ${fcData.length} — clicca per girare</p>
+    <div style="max-width:380px;margin:0 auto;">
+      <div class="fc-card" onclick="this.classList.toggle('flipped')">
+        <div class="fc-inner">
+          <div class="fc-front"><div class="fc-label">❓ Domanda</div><div class="fc-text">${card.q}</div><div class="fc-hint">tocca →</div></div>
+          <div class="fc-back"><div class="fc-label">💡 Risposta</div><div class="fc-text">${card.a}</div><div class="fc-hint">← torna</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="fc-nav">
+      <button onclick="fcNav(-1)" ${fcIndex===0?'disabled style="opacity:.35"':''}>← Prec</button>
+      <span class="fc-progress">${fcIndex+1}/${fcData.length}</span>
+      <button onclick="fcNav(1)" ${fcIndex===fcData.length-1?'disabled style="opacity:.35"':''}>Succ →</button>
+    </div>
+    <div style="text-align:center;margin-top:12px;"><button class="btn btn-ghost" onclick="showAllFC()">📋 Vedi tutte</button></div>`;
+}
+function fcNav(d){fcIndex=Math.max(0,Math.min(fcData.length-1,fcIndex+d));showFlashcard();}
+function showAllFC(){
+  const c=document.getElementById('flashcardContainer');
+  c.innerHTML='<div class="fc-grid">'+fcData.map((card,i)=>`
+    <div class="fc-card" onclick="this.classList.toggle('flipped')">
+      <div class="fc-inner">
+        <div class="fc-front"><div class="fc-label">❓ ${i+1}</div><div class="fc-text">${card.q}</div><div class="fc-hint">tocca →</div></div>
+        <div class="fc-back"><div class="fc-label">💡 Risposta</div><div class="fc-text">${card.a}</div><div class="fc-hint">← torna</div></div>
+      </div>
+    </div>`).join('')+'</div><div style="text-align:center;margin-top:12px;"><button class="btn btn-ghost" onclick="showFlashcard()">← Navigazione</button></div>';
+}
+
+/* ── GLOSSARY ── */
+function parseGlossary(raw){try{return JSON.parse(raw.replace(/```json|```/g,'').trim());}catch{return[];}}
+function renderGlossary(items){
+  document.getElementById('glossaryContainer').style.display='block';
+  document.getElementById('glossaryContainer').innerHTML='<div class="glossary-grid">'+items.map(it=>`
+    <div class="glossary-item"><div class="glossary-term">${it.term}</div><div class="glossary-def">${it.def}</div></div>`).join('')+'</div>';
+}
+
+/* ── OUTPUT ACTIONS ── */
+function copyOutput(){
+  const t=[document.getElementById('outputBody'),document.getElementById('glossaryContainer'),document.getElementById('flashcardContainer')].map(el=>el.innerText).join('\n');
+  navigator.clipboard.writeText(t).then(()=>showToast('Copiato!'));
+}
+function downloadOutput(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([document.getElementById('outputBody').innerText],{type:'text/plain'}));
+  a.download=(lastOutputTitle.replace(/[^\w\s]/g,'')||'edunity').trim().replace(/\s+/g,'_')+'.txt';
+  a.click();showToast('File scaricato!');
+}
+function closeOutput(){
+  document.getElementById('outputCard').classList.remove('visible');
+  document.getElementById('outputBody').style.display='block';
+  document.getElementById('flashcardContainer').style.display='none';
+  document.getElementById('glossaryContainer').style.display='none';
+}
+
+/* ── SAVE MODAL ── */
+let selectedMateria='';
+function openSaveModal(){
+  if(!lastRawOutput&&!document.getElementById('outputBody').innerText.trim()){showToast('Nessun contenuto da salvare.');return;}
+  document.getElementById('saveModal').classList.add('open');
+  document.getElementById('saveTitle').value='';
+  document.getElementById('saveNote').value='';
+  document.querySelectorAll('.materia-opt').forEach(b=>b.classList.remove('sel'));
+  selectedMateria='';
+}
+function closeSaveModal(){document.getElementById('saveModal').classList.remove('open');}
+function selectMateria(btn,m){document.querySelectorAll('.materia-opt').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');selectedMateria=m;}
+function confirmSave(){
+  const title=document.getElementById('saveTitle').value.trim()||('Lezione del '+new Date().toLocaleDateString('it-IT'));
+  const lesson={
+    id:Date.now(),
+    title,
+    materia:selectedMateria||'Altro',
+    note:document.getElementById('saveNote').value.trim(),
+    content:lastRawOutput||document.getElementById('outputBody').innerText,
+    sourceText:getActiveText(),
+    toolUsed:lastOutputTitle,
+    date:new Date().toISOString()
+  };
+  const archive=JSON.parse(localStorage.getItem('edunity_archive')||'[]');
+  archive.unshift(lesson);
+  localStorage.setItem('edunity_archive',JSON.stringify(archive));
+  closeSaveModal();
+  showToast('Lezione salvata in archivio!');
+}
+
+/* ── ARCHIVE ── */
+let activeMateria='Tutte';
+function renderArchive(){
+  const archive=JSON.parse(localStorage.getItem('edunity_archive')||'[]');
+  const content=document.getElementById('archiveContent');
+  document.getElementById('lessonDetail').classList.remove('active');
+  content.style.display='block';
+  const materie=['Tutte',...new Set(archive.map(l=>l.materia))];
+  document.getElementById('materiaFilter').innerHTML=materie.map(m=>`<div class="materia-chip ${m===activeMateria?'active':''}" onclick="filterMateria('${m}')">${m}</div>`).join('');
+  if(!archive.length){content.innerHTML='<div class="empty-archive"><div class="eicon">📭</div><p>Nessuna lezione salvata.<br>Usa gli strumenti AI e premi <strong>💾 Salva</strong>.</p></div>';return;}
+  const filtered=activeMateria==='Tutte'?archive:archive.filter(l=>l.materia===activeMateria);
+  if(!filtered.length){content.innerHTML='<div class="empty-archive"><div class="eicon">🔍</div><p>Nessuna lezione per questa materia.</p></div>';return;}
+  content.innerHTML='<div class="lesson-grid">'+filtered.map(l=>`
+    <div class="lesson-card" onclick="openLesson(${l.id})">
+      <div class="lesson-card-top"><div class="lesson-card-title">${l.title}</div><span class="lesson-materia">${l.materia}</span></div>
+      <div class="lesson-preview">${l.content.replace(/<[^>]+>/g,'').slice(0,140)}…</div>
+      <div class="lesson-meta"><span>🤖 ${l.toolUsed||'—'}</span><span>${new Date(l.date).toLocaleDateString('it-IT')}</span></div>
+    </div>`).join('')+'</div>';
+}
+function filterMateria(m){activeMateria=m;renderArchive();}
+function openLesson(id){
+  const lesson=JSON.parse(localStorage.getItem('edunity_archive')||'[]').find(l=>l.id===id);
+  if(!lesson)return;
+  document.getElementById('archiveContent').style.display='none';
+  const detail=document.getElementById('lessonDetail');
+  detail.classList.add('active');
+  detail.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="closeLesson()">← Archivio</button>
+      <div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;flex:1;">${lesson.title}</div>
+      <span class="lesson-materia">${lesson.materia}</span>
+      <button class="btn btn-danger" onclick="deleteLesson(${lesson.id})" style="padding:5px 11px;font-size:.76rem;">🗑 Elimina</button>
+    </div>
+    ${lesson.note?`<p style="font-size:.78rem;color:var(--muted);margin-bottom:12px;">📝 ${lesson.note}</p>`:''}
+    <p style="font-size:.73rem;color:var(--muted);margin-bottom:14px;">🤖 ${lesson.toolUsed} · ${new Date(lesson.date).toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}</p>
+    <div class="output-body" style="max-height:65vh;overflow-y:auto;">${formatOutput(lesson.content)}</div>`;
+}
+function closeLesson(){document.getElementById('archiveContent').style.display='block';document.getElementById('lessonDetail').classList.remove('active');}
+function deleteLesson(id){
+  if(!confirm('Eliminare questa lezione?'))return;
+  localStorage.setItem('edunity_archive',JSON.stringify(JSON.parse(localStorage.getItem('edunity_archive')||'[]').filter(l=>l.id!==id)));
+  showToast('Lezione eliminata.');renderArchive();closeLesson();
+}
+function clearArchive(){
+  if(!confirm('Eliminare TUTTE le lezioni?'))return;
+  localStorage.removeItem('edunity_archive');showToast('Archivio cancellato.');renderArchive();
+}
+function exportArchive(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([localStorage.getItem('edunity_archive')||'[]'],{type:'application/json'}));
+  a.download='edunity_archivio_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();showToast('Archivio esportato!');
+}
+
+/* ── PROFILE ── */
+function loadProfile(){
+  const p=JSON.parse(localStorage.getItem('edunity_profile')||'{}');
+  if(p.name)document.getElementById('profileName').value=p.name;
+  if(p.type)document.getElementById('profileType').value=p.type;
+  if(p.classe)document.getElementById('profileClasse').value=p.classe;
+}
+function saveProfile(){
+  localStorage.setItem('edunity_profile',JSON.stringify({
+    name:document.getElementById('profileName').value,
+    type:document.getElementById('profileType').value,
+    classe:document.getElementById('profileClasse').value
+  }));
+  renderProfile();
+}
+function renderProfile(){
+  const p=JSON.parse(localStorage.getItem('edunity_profile')||'{}');
+  const archive=JSON.parse(localStorage.getItem('edunity_archive')||'[]');
+  const name=p.name||'Studente';
+  document.getElementById('profileNameDisplay').textContent=name;
+  document.getElementById('avatarEl').textContent=name[0]?.toUpperCase()||'?';
+  const typeMap={standard:'Studente Standard',dsa:'Studente con DSA',atleta:'Studente-Atleta',entrambi:'DSA + Studente-Atleta'};
+  document.getElementById('profileSub').textContent='EdUnity · '+(typeMap[p.type]||'Studente')+(p.classe?' · '+p.classe:'');
+  document.getElementById('statLezioni').textContent=archive.length;
+  document.getElementById('statMaterie').textContent=new Set(archive.map(l=>l.materia)).size;
+  document.getElementById('statAI').textContent=parseInt(localStorage.getItem('edunity_ai_count')||'0');
+}
+function incrementAICount(){localStorage.setItem('edunity_ai_count',parseInt(localStorage.getItem('edunity_ai_count')||'0')+1);}
+
+/* ── TOAST ── */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>
