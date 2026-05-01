@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="theme-color" content="#2563eb"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>EdUnity — Studia Meglio</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<style>
+:root{
+  --bg:#f5f3ee;--surface:#ffffff;--card:#ffffff;--card2:#f9f7f3;
+  --border:#e4dfd5;--border2:#d4cfc5;--accent:#2563eb;--accent-light:#eff6ff;
+  --accent-mid:#bfdbfe;--green:#16a34a;--green-light:#f0fdf4;--amber:#d97706;
+  --amber-light:#fffbeb;--red:#dc2626;--red-light:#fef2f2;--text:#1c1917;
+  --text2:#44403c;--muted:#78716c;--muted2:#a8a29e;
+  --shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-lg:0 8px 32px rgba(0,0,0,.1);
+  --radius:14px;--radius-sm:8px;--radius-lg:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);
+  color:var(--text);min-height:100vh;min-height:100dvh;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+}
+
+/* ═══════════════ HEADER ═══════════════ */
+header{
+  position:sticky;top:0;z-index:200;
+  background:rgba(245,243,238,.92);backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.logo{
+  font-family:'Fraunces',serif;font-weight:700;font-size:1.25rem;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;color:var(--text);
+  letter-spacing:-.02em;cursor:pointer;
+}
+.logo-mark{
+  width:30px;height:30px;border-radius:8px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:.9rem;font-weight:700;font-family:'Fraunces',serif;flex-shrink:0;
+}
+.logo-text{display:inline;}
+.logo-beta{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:.62rem;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;background:var(--amber-light);
+  color:var(--amber);border:1px solid #fde68a;border-radius:5px;
+  padding:2px 7px;margin-left:2px;vertical-align:middle;
+}
+.nav-tabs{display:flex;gap:2px;flex-shrink:0;}
+.nav-tab{
+  padding:7px 14px;border-radius:var(--radius-sm);font-size:.8rem;font-weight:600;
+  cursor:pointer;border:none;background:transparent;color:var(--muted);
+  transition:all .18s;letter-spacing:-.01em;
+}
+.nav-tab:hover{color:var(--text);background:var(--border);}
+.nav-tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+.key-box{
+  display:flex;align-items:center;gap:8px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:6px 12px;flex-shrink:0;box-shadow:var(--shadow-sm);
+}
+.key-box input{
+  background:transparent;border:none;outline:none;color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:.77rem;width:130px;
+}
+#keyStatus{font-size:.72rem;font-weight:600;}
+
+.mobile-menu-btn{
+  display:none;flex-direction:column;justify-content:center;align-items:center;
+  width:36px;height:36px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);cursor:pointer;gap:4px;padding:6px;flex-shrink:0;
+}
+.mobile-menu-btn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;}
+
+.online-counter{
+  display:flex;align-items:center;gap:4px;padding:4px 10px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;font-size:.72rem;color:var(--muted2);
+}
+
+.auth-buttons-header{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.user-menu-header{
+  display:flex;align-items:center;gap:8px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:5px 10px;cursor:pointer;transition:all .18s;
+}
+.user-menu-header:hover{border-color:var(--accent);}
+.user-avatar-header{
+  width:28px;height:28px;border-radius:50%;background:var(--accent);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:.75rem;
+}
+.user-name-header{font-size:.8rem;font-weight:600;color:var(--text);}
+.header-actions{display:flex;align-items:center;gap:10px;}
+
+/* ═══════════════ AUTH PAGE ═══════════════ */
+.auth-page-wrapper{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;min-height:100dvh;padding:20px;
+  background:var(--bg);
+}
+.auth-container{
+  max-width:420px;width:100%;padding:32px;
+  background:var(--surface);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-lg);border:1px solid var(--border);
+}
+.auth-logo{
+  text-align:center;margin-bottom:24px;
+}
+.auth-logo .logo-mark-auth{
+  width:48px;height:48px;border-radius:12px;background:var(--accent);
+  display:inline-flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.3rem;font-weight:700;
+  font-family:'Fraunces',serif;margin-bottom:8px;
+}
+.auth-logo h2{font-family:'Fraunces',serif;font-size:1.5rem;color:var(--text);margin-bottom:4px;}
+.auth-logo p{font-size:.85rem;color:var(--muted);}
+
+.auth-tabs{
+  display:flex;gap:0;margin-bottom:24px;background:var(--bg);
+  border-radius:var(--radius-sm);overflow:hidden;
+}
+.auth-tab{
+  flex:1;padding:12px;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;
+  font-weight:600;font-size:.85rem;cursor:pointer;border:none;
+  background:transparent;color:var(--muted);transition:all .2s;
+}
+.auth-tab.active{background:var(--accent);color:#fff;}
+
+.auth-input{
+  width:100%;padding:12px 16px;margin-bottom:12px;background:var(--bg);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;color:var(--text);
+  outline:none;transition:border-color .2s;-webkit-appearance:none;
+}
+.auth-input:focus{border-color:var(--accent);background:var(--surface);}
+
+.auth-btn{
+  width:100%;padding:14px;background:var(--accent);color:#fff;
+  border:none;border-radius:var(--radius-sm);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:12px;
+}
+.auth-btn:hover{background:#1d4ed8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.35);}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+
+.auth-btn-google{
+  background:var(--surface)!important;color:var(--text)!important;
+  border:1px solid var(--border)!important;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.auth-btn-google:hover{background:var(--bg)!important;border-color:var(--border2)!important;box-shadow:var(--shadow-sm)!important;}
+.auth-btn-google img{width:20px;height:20px;}
+
+.auth-divider{
+  text-align:center;margin:20px 0;color:var(--muted2);
+  font-size:.75rem;position:relative;
+}
+.auth-divider::before,.auth-divider::after{
+  content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border);
+}
+.auth-divider::before{left:0;}
+.auth-divider::after{right:0;}
+
+.auth-error{color:var(--red);font-size:.8rem;margin-top:8px;display:none;line-height:1.4;}
+.auth-success{color:var(--green);font-size:.8rem;margin-top:8px;display:none;line-height:1.4;}
+.auth-info{text-align:center;font-size:.7rem;color:var(--muted2);margin-top:20px;line-height:1.5;}
+
+/* ═══════════════ PAGES ═══════════════ */
+.page{display:none;position:relative;max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+.page.active{display:block;animation:pageIn .22s ease;}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.two-col{display:grid;grid-template-columns:1fr 330px;gap:20px;}
+
+/* ═══════════════ CARDS ═══════════════ */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.card-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-label{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;}
+
+/* ═══════════════ BUTTONS ═══════════════ */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+  border-radius:var(--radius-sm);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.82rem;font-weight:600;border:none;cursor:pointer;
+  transition:all .18s;letter-spacing:-.01em;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.25);}
+.btn-primary:hover{background:#1d4ed8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.35);}
+.btn-secondary{background:var(--surface);color:var(--text2);border:1px solid var(--border);box-shadow:var(--shadow-sm);}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+.btn-danger{background:var(--red-light);color:var(--red);border:1px solid #fecaca;}
+.btn-danger:hover{background:#fee2e2;}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);padding:5px 11px;font-size:.77rem;}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2);}
+.btn-green{background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(22,163,74,.25);}
+.btn-green:hover{background:#15803d;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
+
+/* ═══════════════ RECORDER ═══════════════ */
+.rec-mode-switcher{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px;gap:3px;margin-bottom:16px;}
+.rec-mode-btn{padding:9px 8px;border-radius:6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.8rem;font-weight:600;border:none;cursor:pointer;background:transparent;color:var(--muted);transition:all .18s;text-align:center;line-height:1.3;}
+.rec-mode-btn.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm);border:1px solid var(--border);}
+.rec-mode-btn small{display:block;font-size:.68rem;font-weight:400;opacity:.7;margin-top:1px;}
+.mode-info{font-size:.77rem;color:var(--muted);background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:14px;line-height:1.5;}
+
+.status-badge{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);transition:all .25s;}
+.status-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--muted2);}
+.status-badge.recording{background:#fef2f2;color:var(--red);border-color:#fecaca;}
+.status-badge.recording .dot{background:var(--red);animation:pulse 1s infinite;}
+.status-badge.done{background:var(--green-light);color:var(--green);border-color:#bbf7d0;}
+.status-badge.done .dot{background:var(--green);}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+
+.waveform-wrap{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:12px;}
+.waveform{flex:1;height:44px;display:flex;align-items:center;gap:2px;overflow:hidden;}
+.bar{flex:1;max-width:4px;border-radius:4px;background:var(--border);transition:height .08s ease;height:4px;}
+.waveform.active .bar{background:var(--accent);}
+.timer-badge{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--muted);min-width:44px;text-align:right;transition:color .2s;}
+.timer-badge.active{color:var(--red);}
+.controls{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+
+.transcript-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.transcript-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);min-height:90px;max-height:170px;overflow-y:auto;padding:12px 14px;font-size:.86rem;line-height:1.75;color:var(--text2);}
+.transcript-box .placeholder{color:var(--muted2);font-style:italic;}
+
+.whisper-row{background:var(--green-light);border:1px solid #bbf7d0;border-radius:var(--radius-sm);padding:12px 14px;display:none;margin-bottom:12px;}
+.whisper-row p{font-size:.75rem;color:#15803d;margin-top:6px;}
+
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--radius-sm);padding:22px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-light);}
+.upload-zone .uz-icon{font-size:1.6rem;margin-bottom:6px;}
+.upload-zone strong{font-size:.86rem;color:var(--text2);}
+.upload-zone p{font-size:.75rem;color:var(--muted);margin-top:3px;}
+.upload-preview{display:flex;align-items:center;gap:10px;background:var(--green-light);border:1px solid #bbf7d0;border-radius:var(--radius-sm);padding:10px 12px;margin-top:10px;}
+.upload-preview img{max-height:46px;max-width:64px;border-radius:6px;object-fit:cover;}
+.file-name{font-size:.83rem;font-weight:600;color:var(--text);}
+.file-size{font-size:.72rem;color:var(--muted);}
+
+/* ═══════════════ TOOLS SIDEBAR ═══════════════ */
+.tools-sidebar{position:sticky;top:76px;}
+.tool-list{display:flex;flex-direction:column;gap:6px;}
+.tool-item{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;cursor:pointer;transition:all .18s;}
+.tool-item:hover{border-color:var(--accent);box-shadow:0 2px 12px rgba(37,99,235,.12);transform:translateX(2px);}
+.tool-item.special{border-color:#fde68a;background:var(--amber-light);}
+.tool-item.special:hover{border-color:var(--amber);}
+.tool-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;}
+.tool-name{font-size:.83rem;font-weight:600;color:var(--text);letter-spacing:-.01em;}
+.tool-desc{font-size:.71rem;color:var(--muted);margin-top:1px;line-height:1.3;}
+.tool-arrow{color:var(--muted2);font-size:.85rem;margin-left:auto;transition:all .18s;flex-shrink:0;}
+.tool-item:hover .tool-arrow{color:var(--accent);transform:translateX(3px);}
+
+.mode-toggle{display:inline-flex;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:8px;margin-left:43px;}
+.mode-toggle button{padding:4px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.72rem;font-weight:600;border:none;cursor:pointer;background:transparent;color:var(--muted);transition:all .18s;}
+.mode-toggle button.active{background:var(--accent);color:#fff;}
+.lang-select{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.76rem;padding:4px 9px;margin-top:7px;margin-left:43px;outline:none;cursor:pointer;}
+
+/* ═══════════════ OUTPUT ═══════════════ */
+.output-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;display:none;flex-direction:column;gap:16px;margin-top:20px;box-shadow:var(--shadow-lg);}
+.output-card.visible{display:flex;animation:slideUp .3s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.output-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.output-title{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:600;color:var(--text);}
+.output-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.output-body{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 20px;font-size:.87rem;line-height:1.8;color:var(--text2);white-space:pre-wrap;max-height:65vh;overflow-y:auto;}
+
+.loading-dots{display:flex;gap:6px;align-items:center;justify-content:center;padding:28px;}
+.loading-dots span{width:8px;height:8px;border-radius:50%;animation:bounce .7s infinite;}
+.loading-dots span:nth-child(1){background:var(--accent);}
+.loading-dots span:nth-child(2){background:var(--green);animation-delay:.12s;}
+.loading-dots span:nth-child(3){background:var(--amber);animation-delay:.24s;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* ═══════════════ FLASHCARDS ═══════════════ */
+.fc-card{perspective:900px;height:155px;cursor:pointer;}
+.fc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .45s;border-radius:10px;}
+.fc-card.flipped .fc-inner{transform:rotateY(180deg);}
+.fc-front,.fc-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:10px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;}
+.fc-front{background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);}
+.fc-back{background:linear-gradient(135deg,var(--green-light),var(--accent-light));border:1px solid var(--border);transform:rotateY(180deg);}
+.fc-label{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+.fc-text{font-size:.83rem;line-height:1.5;flex:1;display:flex;align-items:center;margin:7px 0;color:var(--text);}
+.fc-hint{font-size:.62rem;color:var(--muted2);text-align:right;}
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.fc-nav{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:14px;}
+.fc-nav button{background:var(--surface);border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);padding:6px 15px;font-size:.78rem;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;}
+.fc-progress{font-family:'Fraunces',serif;font-size:.85rem;color:var(--muted);min-width:50px;text-align:center;}
+
+/* ═══════════════ GLOSSARY ═══════════════ */
+.glossary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:8px;}
+.glossary-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 13px;}
+.glossary-term{font-family:'Fraunces',serif;font-size:.86rem;font-weight:600;color:var(--amber);margin-bottom:5px;}
+.glossary-def{font-size:.76rem;color:var(--text2);line-height:1.5;}
+
+/* ═══════════════ ARCHIVE ═══════════════ */
+.archive-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.archive-title{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;color:var(--text);}
+.materia-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.materia-chip{padding:5px 14px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .18s;}
+.materia-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(37,99,235,.25);}
+.lesson-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:12px;}
+.lesson-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .18s;box-shadow:var(--shadow-sm);}
+.lesson-card:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(37,99,235,.1);transform:translateY(-2px);}
+.lesson-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:8px;}
+.lesson-card-title{font-family:'Fraunces',serif;font-size:.9rem;font-weight:600;flex:1;color:var(--text);line-height:1.3;}
+.lesson-materia{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:12px;background:var(--accent-light);color:var(--accent);flex-shrink:0;}
+.lesson-preview{font-size:.77rem;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lesson-meta{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:.7rem;color:var(--muted2);padding-top:10px;border-top:1px solid var(--border);}
+.empty-archive{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-archive .eicon{font-size:2.5rem;margin-bottom:10px;}
+.empty-archive p{font-size:.88rem;line-height:1.6;}
+.lesson-detail{display:none;}
+.lesson-detail.active{display:block;animation:pageIn .22s ease;}
+
+/* ═══════════════ MODAL ═══════════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(28,25,23,.4);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;width:min(420px,100%);display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow-lg);}
+.modal-title{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:700;color:var(--text);}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-label{font-size:.75rem;font-weight:600;color:var(--text2);}
+.form-input{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.86rem;padding:9px 12px;outline:none;width:100%;}
+.materia-options{display:flex;flex-wrap:wrap;gap:6px;}
+.materia-opt{padding:5px 12px;border-radius:14px;font-size:.74rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--muted);transition:all .18s;}
+.materia-opt.sel{background:var(--accent);color:#fff;border-color:var(--accent);}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+
+/* ═══════════════ PROFILE ═══════════════ */
+.profile-hero{background:linear-gradient(135deg,var(--accent-light),var(--green-light));border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;display:flex;align-items:center;gap:18px;margin-bottom:20px;}
+.avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--green));display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-family:'Fraunces',serif;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 4px 16px rgba(37,99,235,.3);}
+.profile-name{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;color:var(--text);}
+.profile-sub{font-size:.8rem;color:var(--muted);margin-top:3px;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;box-shadow:var(--shadow-sm);}
+.stat-num{font-family:'Fraunces',serif;font-size:1.9rem;font-weight:700;color:var(--accent);}
+.stat-label{font-size:.72rem;color:var(--muted);margin-top:4px;font-weight:500;}
+.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:12px;box-shadow:var(--shadow-sm);}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:12px;}
+.settings-row:last-child{border-bottom:none;}
+.settings-label{font-size:.86rem;font-weight:600;color:var(--text);}
+.settings-sub{font-size:.73rem;color:var(--muted);margin-top:2px;}
+
+/* ═══════════════ RAGIONA ═══════════════ */
+.ragiona-score-bar-wrap{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;}
+.ragiona-score-label{font-size:.74rem;font-weight:600;color:var(--muted);white-space:nowrap;}
+.ragiona-score-bar{flex:1;height:6px;background:var(--border);border-radius:4px;overflow:hidden;}
+.ragiona-score-fill{height:100%;border-radius:4px;background:var(--accent);transition:width .6s;}
+.ragiona-score-num{font-family:'Fraunces',serif;font-size:.9rem;font-weight:700;color:var(--accent);min-width:38px;text-align:right;}
+.ragiona-messages{display:flex;flex-direction:column;gap:10px;max-height:360px;overflow-y:auto;padding:2px;margin-bottom:12px;}
+.msg{display:flex;flex-direction:column;gap:3px;max-width:88%;}
+.msg-ai{align-self:flex-start;}
+.msg-user{align-self:flex-end;}
+.msg-label{font-size:.63rem;font-weight:600;color:var(--muted);padding:0 4px;}
+.msg-bubble{padding:11px 14px;border-radius:12px;font-size:.86rem;line-height:1.6;}
+.msg-ai .msg-bubble{background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:3px;color:var(--text2);}
+.msg-user .msg-bubble{background:var(--accent-light);border:1px solid var(--accent-mid);border-bottom-right-radius:3px;color:var(--accent);}
+.msg-feedback{font-size:.78rem;padding:7px 11px;border-radius:var(--radius-sm);margin-top:3px;max-width:88%;font-weight:500;}
+.msg-feedback.ok{background:var(--green-light);color:var(--green);border:1px solid #bbf7d0;}
+.msg-feedback.partial{background:var(--amber-light);color:var(--amber);border:1px solid #fde68a;}
+.ragiona-input-row{display:flex;gap:8px;align-items:flex-end;}
+.ragiona-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.87rem;line-height:1.5;padding:10px 13px;outline:none;resize:none;min-height:42px;max-height:110px;}
+
+/* ═══════════════ FOOTER ═══════════════ */
+footer{text-align:center;padding:20px;color:var(--muted2);font-size:.72rem;border-top:1px solid var(--border);}
+footer span{color:var(--accent);font-weight:600;}
+
+/* ═══════════════ TOAST ═══════════════ */
+.toast{position:fixed;bottom:22px;right:22px;z-index:999;background:var(--text);color:#fff;border-radius:var(--radius-sm);padding:10px 16px;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:7px;box-shadow:var(--shadow-lg);transform:translateY(70px);opacity:0;transition:all .28s;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.toast-err{background:var(--red);}
+.mic-error{background:var(--red-light);border:1px solid #fecaca;border-radius:var(--radius-sm);padding:10px 13px;font-size:.8rem;color:var(--red);margin-bottom:10px;display:none;line-height:1.5;}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(max-width:1024px){.two-col{grid-template-columns:1fr;}.tools-sidebar{position:static;}.tool-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}}
+@media(max-width:767px){
+  header{padding:8px 12px;height:auto;min-height:56px;flex-wrap:wrap;gap:8px;}
+  .logo{font-size:1.1rem;}
+  .mobile-menu-btn{display:flex;}
+  .nav-tabs{display:none;width:100%;order:4;}
+  .nav-tabs.mobile-open{display:flex;justify-content:center;overflow-x:auto;}
+  .nav-tab{padding:6px 10px;font-size:.73rem;white-space:nowrap;}
+  .header-actions{flex:1;justify-content:flex-end;gap:6px;}
+  .key-box{padding:4px 8px;}
+  .key-box input{width:90px;font-size:.7rem;}
+  .online-counter{padding:3px 8px;font-size:.68rem;}
+  .user-menu-header{padding:4px 8px;}
+  .user-avatar-header{width:24px;height:24px;font-size:.7rem;}
+  .user-name-header{font-size:.73rem;}
+  .auth-page-wrapper{padding:16px;}
+  .auth-container{padding:24px 16px;}
+  .auth-logo h2{font-size:1.3rem;}
+  .card{padding:14px;margin-bottom:10px;}
+  .card-title{font-size:.9rem;}
+  .rec-mode-switcher{grid-template-columns:1fr;}
+  .rec-mode-btn{font-size:.73rem;padding:7px;}
+  .waveform-wrap{padding:8px 10px;}
+  .waveform{height:36px;}
+  .btn{padding:7px 12px;font-size:.76rem;}
+  .tool-list{grid-template-columns:1fr;}
+  .tool-item{padding:10px 12px;}
+  .tool-name{font-size:.8rem;}
+  .tool-desc{font-size:.68rem;}
+  .output-card{padding:14px;}
+  .output-body{padding:12px 14px;font-size:.8rem;max-height:50vh;}
+  .lesson-grid{grid-template-columns:1fr;}
+  .fc-grid{grid-template-columns:1fr;}
+  .fc-card{height:130px;}
+  .profile-hero{flex-direction:column;text-align:center;padding:18px;}
+  .stats-row{grid-template-columns:repeat(3,1fr);gap:6px;}
+  .stat-card{padding:12px 8px;}
+  .stat-num{font-size:1.4rem;}
+  .settings-row{flex-direction:column;align-items:flex-start;gap:8px;}
+  .settings-row .form-input,.settings-row select{width:100%!important;}
+  .modal{width:95%;padding:18px;}
+  footer{padding:14px;font-size:.65rem;}
+  .toast{bottom:12px;right:10px;left:10px;text-align:center;justify-content:center;font-size:.76rem;}
+}
+@media(max-width:380px){
+  .logo-text{display:none;}
+  .logo-mark{width:24px;height:24px;font-size:.75rem;}
+  .key-box input{width:65px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ AUTH PAGE (DEFAULT) ═══════════════ -->
+<div class="auth-page-wrapper" id="authPage">
+  <div class="auth-container">
+    <div class="auth-logo">
+      <div class="logo-mark-auth">E</div>
+      <h2>EdUnity</h2>
+      <p>Entra e inizia a studiare meglio</p>
+    </div>
+    
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="authTabLogin" onclick="showLoginTab()">Accedi</button>
+      <button class="auth-tab" id="authTabRegister" onclick="showRegisterTab()">Registrati</button>
+    </div>
+    
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <input type="email" class="auth-input" id="loginEmail" placeholder="Email" autocomplete="email">
+      <input type="password" class="auth-input" id="loginPassword" placeholder="Password" autocomplete="current-password">
+      <div class="auth-error" id="loginError"></div>
+      <button class="auth-btn" id="loginBtn" onclick="loginWithEmail()">🔑 Accedi con Email</button>
+      
+      <div class="auth-divider">oppure</div>
+      
+      <button class="auth-btn auth-btn-google" id="googleBtn" onclick="loginWithGoogle()">
+        <img src="https://www.google.com/favicon.ico" alt="G" style="width:18px;height:18px;"/>
+        Accedi con Google
+      </button>
+    </div>
+    
+    <!-- REGISTER FORM -->
+    <div id="registerForm" style="display:none;">
+      <input type="text" class="auth-input" id="regName" placeholder="Nome" autocomplete="name">
+      <input type="email" class="auth-input" id="regEmail" placeholder="Email" autocomplete="email">
+      <input type="password" class="auth-input" id="regPassword" placeholder="Password (min. 6 caratteri)" autocomplete="new-password">
+      <div class="auth-error" id="registerError"></div>
+      <button class="auth-btn" id="registerBtn" onclick="registerWithEmail()">✨ Crea Account</button>
+      
+      <div class="auth-divider">oppure</div>
+      
+      <button class="auth-btn auth-btn-google" onclick="loginWithGoogle()">
+        <img src="https://www.google.com/favicon.ico" alt="G" style="width:18px;height:18px;"/>
+        Registrati con Google
+      </button>
+    </div>
+    
+    <div class="auth-info">🔒 Dati al sicuro · Account gratuito · Nessuna carta</div>
+  </div>
+</div>
+
+<!-- ═══════════════ HEADER (nascosto finché non loggato) ═══════════════ -->
+<header id="mainHeader" style="display:none;">
+  <div class="logo" onclick="goPage('home')">
+    <div class="logo-mark">E</div>
+    <span class="logo-text">EdUnity</span>
+    <span class="logo-beta">Beta</span>
+  </div>
+  
+  <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  
+  <nav class="nav-tabs" id="navTabs">
+    <button class="nav-tab active" onclick="goPage('home')">Studio</button>
+    <button class="nav-tab" onclick="goPage('archive')">Archivio</button>
+    <button class="nav-tab" onclick="goPage('profile')">Profilo</button>
+  </nav>
+  
+  <div class="header-actions">
+    <div class="online-counter" id="onlineCounter">
+      <span style="color:var(--muted2);">○</span><span>offline</span>
+    </div>
+    <div class="key-box">
+      <span style="font-size:.75rem;">🔑</span>
+      <input id="apiKeyInput" type="password" placeholder="gsk_..." oninput="saveKey(this.value)"/>
+      <span id="keyStatus">—</span>
+    </div>
+    <div class="auth-buttons-header" id="authButtons"></div>
+  </div>
+</header>
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<div class="page" id="page-home">
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="card-title" style="margin-bottom:0;">🎙 Registra la lezione</div>
+          <div class="status-badge" id="statusBadge"><div class="dot"></div><span id="statusText">In attesa</span></div>
+        </div>
+        <div class="rec-mode-switcher">
+          <button class="rec-mode-btn active" id="modeWebBtn" onclick="setRecMode('web')">🌐 Web Speech<small>Chrome/Edge</small></button>
+          <button class="rec-mode-btn" id="modeWhisperBtn" onclick="setRecMode('whisper')">🤖 Groq Whisper<small>Tutti i browser</small></button>
+        </div>
+        <div class="mode-info" id="modeInfo">🌐 <strong>Web Speech</strong> — trascrizione in tempo reale.</div>
+        <div class="mic-error" id="micError"></div>
+        <div class="waveform-wrap"><div class="waveform" id="waveform"></div><div class="timer-badge" id="timer">00:00</div></div>
+        <div class="controls">
+          <button class="btn btn-primary" id="btnRecord" onclick="toggleRecord()"><span id="btnIcon">⏺</span><span id="btnLabel">Inizia</span></button>
+          <button class="btn btn-danger" id="btnStop" onclick="stopRecord()" disabled>⏹ Stop</button>
+        </div>
+        <div class="whisper-row" id="whisperRow">
+          <button class="btn btn-green" style="width:100%;" id="btnTranscribe" onclick="transcribeWithWhisper()" disabled>🤖 Trascrivi con Whisper</button>
+          <p id="whisperHint">Registra prima, poi premi per trascrivere.</p>
+        </div>
+        <div class="transcript-label">
+          <div class="section-label" style="margin-bottom:0;">Trascrizione</div>
+          <button class="btn btn-ghost" onclick="clearTranscript()" style="padding:3px 9px;font-size:.71rem;">🗑</button>
+        </div>
+        <div class="transcript-box" id="transcriptBox"><span class="placeholder">La trascrizione apparirà qui…</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📎 Carica Appunti o PDF</div>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+          <div class="uz-icon">📄</div><strong>Trascina qui o clicca</strong><p>Foto JPG/PNG · PDF</p>
+        </div>
+        <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none" onchange="handleFile(this.files[0])"/>
+        <div id="uploadPreview" style="display:none;" class="upload-preview">
+          <img id="previewImg" src="" alt=""/><div style="flex:1;"><div class="file-name" id="fileName">—</div><div class="file-size" id="fileSize">—</div></div>
+          <button class="btn btn-ghost" onclick="clearUpload()" style="padding:4px 9px;">✕</button>
+        </div>
+        <div id="uploadProgress" style="display:none;margin-top:10px;text-align:center;">
+          <div class="loading-dots"><span></span><span></span><span></span></div>
+          <p style="font-size:.77rem;color:var(--muted);" id="uploadStatus">Elaborazione…</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">✏️ Testo manuale</div>
+        <textarea id="manualText" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.87rem;line-height:1.65;padding:11px 13px;resize:vertical;min-height:88px;outline:none;" placeholder="Incolla appunti, testi o qualsiasi contenuto…" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn btn-secondary" onclick="useManualText()">Usa questo testo →</button>
+          <button class="btn btn-ghost" onclick="clearManual()">🗑</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tools-sidebar">
+      <div class="section-label">Strumenti AI</div>
+      <div class="tool-list">
+        <div class="tool-item" onclick="runTool('summary')" style="flex-direction:column;align-items:stretch;">
+          <div style="display:flex;align-items:center;gap:11px;"><div class="tool-icon" style="background:var(--accent-light);">📝</div><div><div class="tool-name">Riassunto</div><div class="tool-desc">Sintesi strutturata</div></div><div class="tool-arrow">→</div></div>
+          <div class="mode-toggle" onclick="event.stopPropagation()"><button class="active" id="btnVeloce" onclick="setSummaryMode('veloce')">⚡ Veloce</button><button id="btnDettagliato" onclick="setSummaryMode('dettagliato')">📖 Dettagliato</button></div>
+        </div>
+        <div class="tool-item" onclick="runTool('mindmap')"><div class="tool-icon" style="background:#eff6ff;">🗺</div><div><div class="tool-name">Mappa Concettuale</div><div class="tool-desc">Schema gerarchico</div></div><div class="tool-arrow">→</div></div>
+        <div class="tool-item" onclick="runTool('flashcard')"><div class="tool-icon" style="background:var(--amber-light);">🃏</div><div><div class="tool-name">Flashcard</div><div class="tool-desc">Domanda / Risposta</div></div><div class="tool-arrow">→</div></div>
+        <div class="tool-item" onclick="runTool('quiz')"><div class="tool-icon" style="background:var(--red-light);">❓</div><div><div class="tool-name">Quiz</div><div class="tool-desc">5 domande a scelta multipla</div></div><div class="tool-arrow">→</div></div>
+        <div class="tool-item" onclick="runTool('simplify')"><div class="tool-icon" style="background:#faf5ff;">✨</div><div><div class="tool-name">Semplifica (DSA)</div><div class="tool-desc">Linguaggio accessibile</div></div><div class="tool-arrow">→</div></div>
+        <div class="tool-item" onclick="runTool('glossary')"><div class="tool-icon" style="background:var(--amber-light);">📖</div><div><div class="tool-name">Glossario</div><div class="tool-desc">Parole difficili spiegate</div></div><div class="tool-arrow">→</div></div>
+        <div class="tool-item" style="flex-direction:column;align-items:stretch;">
+          <div style="display:flex;align-items:center;gap:11px;" onclick="runTool('translate')"><div class="tool-icon" style="background:var(--green-light);">🌍</div><div><div class="tool-name">Traduzione</div><div class="tool-desc">Traduci in un'altra lingua</div></div><div class="tool-arrow">→</div></div>
+          <select class="lang-select" id="targetLang" onclick="event.stopPropagation()"><option value="inglese">🇬🇧 Inglese</option><option value="francese">🇫🇷 Francese</option><option value="spagnolo">🇪🇸 Spagnolo</option><option value="tedesco">🇩🇪 Tedesco</option><option value="italiano">🇮🇹 Italiano</option></select>
+        </div>
+        <div class="tool-item special" onclick="startRagiona()"><div class="tool-icon" style="background:rgba(217,119,6,.15);">🧠</div><div><div class="tool-name" style="color:var(--amber);">Modalità Ragiona</div><div class="tool-desc">Il tutor ti guida</div></div><div class="tool-arrow">→</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="output-card" id="outputCard">
+    <div class="output-header">
+      <div class="output-title" id="outputTitle">Risultato</div>
+      <div class="output-actions">
+        <button class="btn btn-secondary" onclick="openSaveModal()">💾 Salva</button>
+        <button class="btn btn-secondary" onclick="copyOutput()">📋 Copia</button>
+        <button class="btn btn-secondary" onclick="downloadOutput()">⬇ .txt</button>
+        <button class="btn btn-ghost" onclick="closeOutput()">✕</button>
+      </div>
+    </div>
+    <div id="outputBody" class="output-body"></div>
+    <div id="flashcardContainer" style="display:none;"></div>
+    <div id="glossaryContainer" style="display:none;"></div>
+    <div id="ragionaContainer" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ ARCHIVE ═══════════════ -->
+<div class="page" id="page-archive">
+  <div class="archive-header"><div><div class="archive-title">Archivio Cloud ☁️</div><div style="font-size:.84rem;color:var(--muted);">Lezioni sincronizzate</div></div><button class="btn btn-secondary" onclick="renderArchive()">🔄 Aggiorna</button></div>
+  <div class="materia-filter" id="materiaFilter"></div>
+  <div id="archiveContent"></div>
+  <div id="lessonDetail" class="lesson-detail"></div>
+</div>
+
+<!-- ═══════════════ PROFILE ═══════════════ -->
+<div class="page" id="page-profile">
+  <div class="profile-hero"><div class="avatar" id="avatarEl">?</div><div><div class="profile-name" id="profileNameDisplay">Studente</div><div class="profile-sub" id="profileSub">EdUnity</div></div></div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="statLezioni">0</div><div class="stat-label">Lezioni</div></div>
+    <div class="stat-card"><div class="stat-num" id="statMaterie">0</div><div class="stat-label">Materie</div></div>
+    <div class="stat-card"><div class="stat-num" id="statAI">0</div><div class="stat-label">AI usi</div></div>
+  </div>
+  <div class="settings-card">
+    <div class="section-label">Account</div>
+    <div class="settings-row"><div><div class="settings-label">Email</div><div class="settings-sub" id="accountEmail">—</div></div><button class="btn btn-ghost" id="logoutBtn" onclick="logoutUser()">🚪 Logout</button></div>
+    <div class="settings-row"><div><div class="settings-label">Accesso</div><div class="settings-sub" id="loginProvider">—</div></div></div>
+  </div>
+  <div class="settings-card">
+    <div class="section-label">Profilo</div>
+    <div class="settings-row"><div class="settings-label">Nome</div><input class="form-input" id="profileName" placeholder="Nome" style="width:170px;" oninput="saveProfile()"/></div>
+    <div class="settings-row"><div class="settings-label">Tipo</div><select class="form-input" id="profileType" style="width:170px;" onchange="saveProfile()"><option value="standard">Standard</option><option value="dsa">DSA</option><option value="atleta">Atleta</option></select></div>
+    <div class="settings-row"><div class="settings-label">Classe</div><input class="form-input" id="profileClasse" placeholder="es. 3° Liceo" style="width:170px;" oninput="saveProfile()"/></div>
+  </div>
+  <div class="settings-card">
+    <div class="section-label">Dati</div>
+    <div class="settings-row"><div><div class="settings-label">Migra da locale</div></div><button class="btn btn-secondary" onclick="migrateLocalToCloud()">☁️ Migra</button></div>
+    <div class="settings-row"><div><div class="settings-label">Cancella archivio</div></div><button class="btn btn-danger" onclick="clearArchive()">🗑</button></div>
+    <div class="settings-row"><div><div class="settings-label">Backup JSON</div></div><button class="btn btn-secondary" onclick="exportArchive()">⬇</button></div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <div class="modal-title">💾 Salva nel Cloud</div>
+    <div class="form-group"><label class="form-label">Titolo</label><input class="form-input" id="saveTitle" placeholder="es. Fotosintesi"/></div>
+    <div class="form-group"><label class="form-label">Materia</label>
+      <div class="materia-options">
+        <button class="materia-opt" onclick="selectMateria(this,'Biologia')">🧬 Bio</button><button class="materia-opt" onclick="selectMateria(this,'Matematica')">📐 Mate</button>
+        <button class="materia-opt" onclick="selectMateria(this,'Storia')">📜 Storia</button><button class="materia-opt" onclick="selectMateria(this,'Fisica')">⚡ Fisica</button>
+        <button class="materia-opt" onclick="selectMateria(this,'Italiano')">✍️ Italiano</button><button class="materia-opt" onclick="selectMateria(this,'Altro')">📁 Altro</button>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Note</label><input class="form-input" id="saveNote" placeholder="es. Cap. 4"/></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeSaveModal()">Annulla</button><button class="btn btn-primary" onclick="confirmSave()">💾 Salva</button></div>
+  </div>
+</div>
+
+<footer id="mainFooter" style="display:none;">EdUnity — <span>Fondata a Torino</span> · Cloud sync · Per studenti DSA e atleti</footer>
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+// ═══════════════ FIREBASE INIT ═══════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDAzftdj79S55mmQKALxVwF6CF0OcO0J8Y",
+  authDomain: "edunity-4ce21.firebaseapp.com",
+  projectId: "edunity-4ce21",
+  storageBucket: "edunity-4ce21.firebasestorage.app",
+  messagingSenderId: "905851013698",
+  appId: "1:905851013698:web:daddb68c46981d7719fbdb"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const rtdb = firebase.database();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+googleProvider.setCustomParameters({prompt: 'select_account'});
+db.enablePersistence().catch(() => {});
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ═══════════════ AUTH TABS ═══════════════
+function showLoginTab() {
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('registerForm').style.display = 'none';
+  document.getElementById('authTabLogin').classList.add('active');
+  document.getElementById('authTabRegister').classList.remove('active');
+  hideAuthErrors();
+}
+function showRegisterTab() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('registerForm').style.display = 'block';
+  document.getElementById('authTabLogin').classList.remove('active');
+  document.getElementById('authTabRegister').classList.add('active');
+  hideAuthErrors();
+}
+function hideAuthErrors() {
+  ['loginError','registerError'].forEach(id => document.getElementById(id).style.display = 'none');
+}
+
+// ═══════════════ LOGIN CON GOOGLE ═══════════════
+async function loginWithGoogle() {
+  const btn = document.getElementById('googleBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Attendere...'; }
+  try {
+    const result = await auth.signInWithPopup(googleProvider);
+    showToast('Benvenuto ' + (result.user.displayName || '') + '! 🎉');
+    // Il redirect è gestito dall'observer onAuthStateChanged
+  } catch (error) {
+    console.error('Google login error:', error);
+    if (error.code === 'auth/popup-blocked') {
+      showToast('Popup bloccato! Consenti i popup per questo sito.', 'err');
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      // L'utente ha chiuso il popup, nessun errore
+    } else {
+      showToast('Errore: ' + error.message, 'err');
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Accedi con Google'; }
+  }
+}
+
+// ═══════════════ LOGIN CON EMAIL ═══════════════
+async function loginWithEmail() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  hideAuthErrors();
+  if (!email || !password) {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginError').textContent = '⚠ Inserisci email e password';
+    return;
+  }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = '⏳ Accesso...';
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+  } catch (error) {
+    let msg = 'Errore durante il login';
+    if (error.code === 'auth/user-not-found') msg = 'Utente non trovato';
+    if (error.code === 'auth/wrong-password') msg = 'Password errata';
+    if (error.code === 'auth/invalid-email') msg = 'Email non valida';
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginError').textContent = '⚠ ' + msg;
+    btn.disabled = false; btn.textContent = '🔑 Accedi con Email';
+  }
+}
+
+// ═══════════════ REGISTRAZIONE EMAIL ═══════════════
+async function registerWithEmail() {
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const name = document.getElementById('regName').value.trim();
+  hideAuthErrors();
+  if (!email || !password || !name) {
+    document.getElementById('registerError').style.display = 'block';
+    document.getElementById('registerError').textContent = '⚠ Compila tutti i campi';
+    return;
+  }
+  if (password.length < 6) {
+    document.getElementById('registerError').style.display = 'block';
+    document.getElementById('registerError').textContent = '⚠ Password di almeno 6 caratteri';
+    return;
+  }
+  const btn = document.getElementById('registerBtn');
+  btn.disabled = true; btn.textContent = '⏳ Creazione...';
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    await userCredential.user.updateProfile({ displayName: name });
+    showToast('Account creato! Benvenuto ' + name + '! 🎉');
+  } catch (error) {
+    let msg = 'Errore di registrazione';
+    if (error.code === 'auth/email-already-in-use') msg = 'Email già registrata';
+    if (error.code === 'auth/invalid-email') msg = 'Email non valida';
+    if (error.code === 'auth/weak-password') msg = 'Password troppo debole';
+    document.getElementById('registerError').style.display = 'block';
+    document.getElementById('registerError').textContent = '⚠ ' + msg;
+    btn.disabled = false; btn.textContent = '✨ Crea Account';
+  }
+}
+
+// ═══════════════ LOGOUT ═══════════════
+async function logoutUser() {
+  try {
+    const user = auth.currentUser;
+    if (user) await rtdb.ref('online/' + user.uid).remove();
+    await auth.signOut();
+    showToast('Logout effettuato');
+  } catch (e) {
+    showToast('Errore logout', 'err');
+  }
+}
+
+// ═══════════════ AUTH STATE OBSERVER (GESTISCE REDIRECT) ═══════════════
+auth.onAuthStateChanged((user) => {
+  const authPage = document.getElementById('authPage');
+  const mainHeader = document.getElementById('mainHeader');
+  const mainFooter = document.getElementById('mainFooter');
+  
+  if (user) {
+    // UTENTE LOGGATO → NASCONDI LOGIN, MOSTRA APP
+    console.log('✅ Utente loggato:', user.email);
+    
+    // Nascondi pagina auth
+    authPage.style.display = 'none';
+    
+    // Mostra header e footer
+    mainHeader.style.display = 'flex';
+    mainFooter.style.display = 'block';
+    
+    // Mostra pagina studio di default
+    goPage('home');
+    
+    // Aggiorna UI
+    updateAuthUI(user);
+    
+    // Setup presence
+    setupPresence(user);
+    
+    // Salva profilo se nuovo
+    if (user.displayName) {
+      const pn = document.getElementById('profileName');
+      if (pn && !pn.value) {
+        pn.value = user.displayName;
+        saveProfile();
+      }
+    }
+    
+  } else {
+    // UTENTE NON LOGGATO → MOSTRA SOLO LOGIN
+    console.log('⚫ Nessun utente loggato');
+    
+    // Mostra pagina auth
+    authPage.style.display = 'flex';
+    
+    // Nascondi header, footer e tutte le pagine
+    mainHeader.style.display = 'none';
+    mainFooter.style.display = 'none';
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  }
+  
+  // Aggiorna contatore online
+  updateOnlineCounter();
+});
+
+function updateAuthUI(user) {
+  const ab = document.getElementById('authButtons');
+  if (!ab) return;
+  
+  const photoURL = user.photoURL;
+  const displayName = user.displayName || user.email?.split('@')[0] || 'Studente';
+  const initial = displayName[0].toUpperCase();
+  
+  if (photoURL) {
+    ab.innerHTML = `
+      <div class="user-menu-header" onclick="goPage('profile')">
+        <img src="${photoURL}" class="user-avatar-header" style="border-radius:50%;object-fit:cover;" alt=""/>
+        <span class="user-name-header">${displayName}</span>
+      </div>
+      <button class="btn btn-ghost" onclick="logoutUser()" style="font-size:0.7rem;padding:4px 8px;">Esci</button>
+    `;
+  } else {
+    ab.innerHTML = `
+      <div class="user-menu-header" onclick="goPage('profile')">
+        <div class="user-avatar-header">${initial}</div>
+        <span class="user-name-header">${displayName}</span>
+      </div>
+      <button class="btn btn-ghost" onclick="logoutUser()" style="font-size:0.7rem;padding:4px 8px;">Esci</button>
+    `;
+  }
+  
+  // Aggiorna pagina profilo
+  const accountEmail = document.getElementById('accountEmail');
+  const loginProvider = document.getElementById('loginProvider');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (accountEmail) accountEmail.textContent = user.email;
+  if (loginProvider) loginProvider.textContent = user.providerData[0]?.providerId === 'google.com' ? 'Google' : 'Email';
+  if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+}
+
+// ═══════════════ PRESENCE ═══════════════
+function setupPresence(user) {
+  const ref = rtdb.ref('online/' + user.uid);
+  rtdb.ref('.info/connected').on('value', snap => {
+    if (snap.val() === true) {
+      ref.set({
+        email: user.email,
+        name: user.displayName || 'Studente',
+        online: true,
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
+      });
+      ref.onDisconnect().set({
+        email: user.email,
+        name: user.displayName || 'Studente',
+        online: false,
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+  });
+}
+
+function updateOnlineCounter() {
+  rtdb.ref('online').on('value', snap => {
+    const users = snap.val();
+    const el = document.getElementById('onlineCounter');
+    if (!el) return;
+    let count = 0;
+    if (users) Object.values(users).forEach(u => { if (u.online === true) count++; });
+    if (count > 0) {
+      el.innerHTML = `<span style="color:var(--green);">●</span><span style="font-weight:600;">${count} online</span>`;
+    } else {
+      el.innerHTML = `<span style="color:var(--muted2);">○</span><span>offline</span>`;
+    }
+  });
+}
+
+// ═══════════════ MOBILE MENU ═══════════════
+function toggleMobileMenu() {
+  document.getElementById('navTabs').classList.toggle('mobile-open');
+}
+document.querySelectorAll('.nav-tab').forEach(t => {
+  t.addEventListener('click', () => document.getElementById('navTabs').classList.remove('mobile-open'));
+});
+
+// ═══════════════ NAVIGATION ═══════════════
+function goPage(id) {
+  if (!auth.currentUser) return;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const pe = document.getElementById('page-' + id);
+  if (pe) pe.classList.add('active');
+  const map = { home: 0, archive: 1, profile: 2 };
+  if (map[id] !== undefined) document.querySelectorAll('.nav-tab')[map[id]].classList.add('active');
+  document.getElementById('navTabs')?.classList.remove('mobile-open');
+  if (id === 'archive') renderArchive();
+  if (id === 'profile') renderProfile();
+}
+
+// ═══════════════ API KEY ═══════════════
+let apiKey = localStorage.getItem('edunity_groq_key') || '';
+window.addEventListener('DOMContentLoaded', () => {
+  if (apiKey) { document.getElementById('apiKeyInput').value = apiKey; updateKeyStatus(apiKey); }
+  loadProfile();
+  initWaveform();
+});
+function saveKey(v) { apiKey = v.trim(); localStorage.setItem('edunity_groq_key', apiKey); updateKeyStatus(apiKey); }
+function updateKeyStatus(k) {
+  const el = document.getElementById('keyStatus');
+  if (k.startsWith('gsk_') && k.length > 20) { el.textContent = '✓'; el.style.color = 'var(--green)'; }
+  else if (k.length > 0) { el.textContent = '✗'; el.style.color = 'var(--red)'; }
+  else { el.textContent = '—'; el.style.color = 'var(--muted2)'; }
+}
+
+// ═══════════════ WAVEFORM ═══════════════
+function initWaveform() { const wf = document.getElementById('waveform'); for (let i = 0; i < 40; i++) { const b = document.createElement('div'); b.className = 'bar'; wf.appendChild(b); } }
+let wfInt = null;
+function animateBars() { const bars = document.querySelectorAll('.bar'); wfInt = setInterval(() => bars.forEach(b => b.style.height = (Math.random() * 34 + 4) + 'px'), 90); }
+function stopBars() { clearInterval(wfInt); wfInt = null; document.querySelectorAll('.bar').forEach(b => b.style.height = '4px'); }
+
+// ═══════════════ TIMER ═══════════════
+let timerSec = 0, timerInt = null;
+function startTimer() {
+  timerInt = setInterval(() => { timerSec++; const m = String(Math.floor(timerSec / 60)).padStart(2, '0'), s = String(timerSec % 60).padStart(2, '0'); document.getElementById('timer').textContent = m + ':' + s; }, 1000);
+  document.getElementById('timer').className = 'timer-badge active';
+}
+function resetTimer() { clearInterval(timerInt); timerInt = null; timerSec = 0; document.getElementById('timer').textContent = '00:00'; document.getElementById('timer').className = 'timer-badge'; }
+
+// ═══════════════ MIC ═══════════════
+let recMode = 'web', micState = 'idle', transcript = '';
+let recognition = null, recognitionRunning = false, recognitionRestartTimer = null;
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let mediaRecorder = null, audioChunks = [], micStream = null;
+
+function setRecMode(mode) {
+  if (micState === 'recording') { showToast('Ferma prima di cambiare modalità.'); return; }
+  recMode = mode;
+  document.getElementById('modeWebBtn').classList.toggle('active', mode === 'web');
+  document.getElementById('modeWhisperBtn').classList.toggle('active', mode === 'whisper');
+  document.getElementById('modeInfo').innerHTML = mode === 'web' ? '🌐 <strong>Web Speech</strong> — trascrizione in tempo reale.' : '🤖 <strong>Groq Whisper</strong> — registra, poi trascrivi.';
+  document.getElementById('whisperRow').style.display = mode === 'whisper' ? 'block' : 'none';
+  hideMicError();
+}
+function toggleRecord() { if (micState === 'idle' || micState === 'stopped') startRecord(); else if (micState === 'recording') pauseRecord(); else resumeRecord(); }
+async function startRecord() { hideMicError(); micState = 'recording'; updateRecUI(); if (recMode === 'web') startWebSpeech(); else await startWhisperRec(); document.getElementById('waveform').classList.add('active'); animateBars(); startTimer(); }
+function pauseRecord() {
+  micState = 'paused';
+  if (recMode === 'web') stopWebSpeech(false); else { if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.pause(); }
+  stopBars(); clearInterval(timerInt); document.getElementById('timer').className = 'timer-badge'; document.getElementById('waveform').classList.remove('active'); updateRecUI();
+}
+function resumeRecord() { micState = 'recording'; if (recMode === 'web') startWebSpeech(); else { if (mediaRecorder && mediaRecorder.state === 'paused') mediaRecorder.resume(); } document.getElementById('waveform').classList.add('active'); animateBars(); startTimer(); updateRecUI(); }
+function stopRecord() {
+  if (micState === 'idle') return;
+  micState = 'stopped';
+  if (recMode === 'web') stopWebSpeech(true); else stopWhisperRec();
+  stopBars(); resetTimer(); document.getElementById('waveform').classList.remove('active'); document.getElementById('btnStop').disabled = true;
+  updateRecUI(); setStatus('done', 'Completata');
+  if (recMode === 'whisper') showToast('Audio salvato — premi Trascrivi!');
+  else if (transcript.trim()) showToast('Trascrizione pronta!');
+}
+function updateRecUI() {
+  const btn = document.getElementById('btnRecord'), icon = document.getElementById('btnIcon'), label = document.getElementById('btnLabel');
+  document.getElementById('btnStop').disabled = micState === 'recording' || micState === 'paused' ? false : true;
+  if (micState === 'recording') { icon.textContent = '⏸'; label.textContent = 'Pausa'; setStatus('recording', recMode === 'web' ? 'In ascolto…' : 'Registrando…'); }
+  else if (micState === 'paused') { icon.textContent = '▶'; label.textContent = 'Riprendi'; setStatus('', 'In pausa'); }
+  else { icon.textContent = '⏺'; label.textContent = 'Inizia'; }
+}
+function setStatus(cls, text) { const b = document.getElementById('statusBadge'); b.className = 'status-badge' + (cls ? ' ' + cls : ''); document.getElementById('statusText').textContent = text; }
+function showMicError(msg) { document.getElementById('micError').style.display = 'block'; document.getElementById('micError').textContent = '⚠ ' + msg; }
+function hideMicError() { document.getElementById('micError').style.display = 'none'; }
+
+// ═══════════════ WEB SPEECH ═══════════════
+function startWebSpeech() {
+  if (!SR) { showMicError('Web Speech non supportato. Usa Chrome/Edge o passa a Whisper.'); micState = 'idle'; updateRecUI(); stopBars(); resetTimer(); return; }
+  if (recognitionRunning) return;
+  recognition = new SR(); recognition.lang = 'it-IT'; recognition.continuous = true; recognition.interimResults = true;
+  recognition.onstart = () => { recognitionRunning = true; };
+  recognition.onresult = e => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { if (e.results[i].isFinal) transcript += e.results[i][0].transcript + ' '; else interim += e.results[i][0].transcript; } renderTranscript(transcript, interim); };
+  recognition.onerror = e => { recognitionRunning = false; if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { showMicError('Microfono negato.'); stopRecord(); } };
+  recognition.onend = () => { recognitionRunning = false; if (micState === 'recording') { recognitionRestartTimer = setTimeout(() => { if (micState === 'recording' && !recognitionRunning) startWebSpeech(); }, 300); } };
+  try { recognition.start(); } catch (err) { recognitionRunning = false; }
+}
+function stopWebSpeech(finalize) { clearTimeout(recognitionRestartTimer); if (recognition) { try { recognition.stop(); } catch (e) {} recognition = null; } recognitionRunning = false; if (finalize) renderTranscript(transcript, ''); }
+
+// ═══════════════ WHISPER ═══════════════
+function getSupportedMime() { return ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg', 'audio/mp4'].find(t => MediaRecorder.isTypeSupported(t)) || ''; }
+async function startWhisperRec() {
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); audioChunks = [];
+    mediaRecorder = new MediaRecorder(micStream, { mimeType: getSupportedMime() });
+    mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.start(1000);
+    document.getElementById('btnTranscribe').disabled = true;
+    document.getElementById('whisperHint').textContent = 'Registrando… premi Stop.';
+  } catch (err) { showMicError('Microfono: ' + err.message); micState = 'idle'; updateRecUI(); }
+}
+function stopWhisperRec() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  setTimeout(() => { document.getElementById('btnTranscribe').disabled = audioChunks.length === 0; document.getElementById('whisperHint').textContent = audioChunks.length > 0 ? '✓ Audio salvato' : '⚠ Nessun audio.'; }, 500);
+}
+async function transcribeWithWhisper() {
+  if (!audioChunks.length) { showToast('Nessun audio.'); return; }
+  if (!apiKey || !apiKey.startsWith('gsk_')) { showToast('Inserisci Groq API Key!'); return; }
+  const btn = document.getElementById('btnTranscribe'); btn.disabled = true; btn.textContent = '⏳ Trascrizione…';
+  try {
+    const mimeType = mediaRecorder?.mimeType || getSupportedMime() || 'audio/webm';
+    const blob = new Blob(audioChunks, { type: mimeType }); let ext = 'webm';
+    if (mimeType.includes('mp4')) ext = 'm4a'; else if (mimeType.includes('ogg')) ext = 'ogg';
+    const fd = new FormData(); fd.append('file', blob, 'recording.' + ext); fd.append('model', 'whisper-large-v3-turbo'); fd.append('language', 'it'); fd.append('response_format', 'text');
+    const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', headers: { 'Authorization': 'Bearer ' + apiKey }, body: fd });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'HTTP ' + res.status); }
+    transcript = (await res.text()).trim(); renderTranscript(transcript, ''); setStatus('done', 'Trascritto ✓'); showToast('Trascrizione completata!'); incrementAICount();
+  } catch (err) { showToast('Errore: ' + err.message, 'err'); }
+  finally { btn.disabled = false; btn.innerHTML = '🤖 Trascrivi con Whisper'; }
+}
+
+// ═══════════════ TRANSCRIPT ═══════════════
+function renderTranscript(final, interim) { const box = document.getElementById('transcriptBox'); box.innerHTML = ''; if (final) { const p = document.createElement('p'); p.textContent = final; box.appendChild(p); } if (interim) { const p = document.createElement('p'); p.style.cssText = 'color:var(--muted2);font-style:italic;'; p.textContent = interim; box.appendChild(p); } box.scrollTop = box.scrollHeight; }
+function clearTranscript() { transcript = ''; audioChunks = []; document.getElementById('transcriptBox').innerHTML = '<span class="placeholder">La trascrizione apparirà qui…</span>'; setStatus('', 'In attesa'); if (recMode === 'whisper') { document.getElementById('btnTranscribe').disabled = true; document.getElementById('whisperHint').textContent = 'Registra prima.'; } showToast('Cancellata.'); }
+function useManualText() { const t = document.getElementById('manualText').value.trim(); if (!t) { showToast('Inserisci del testo.'); return; } transcript = t; const box = document.getElementById('transcriptBox'); box.innerHTML = ''; const p = document.createElement('p'); p.textContent = t.slice(0, 300) + (t.length > 300 ? '…' : ''); box.appendChild(p); setStatus('done', 'Testo caricato'); showToast('Testo caricato!'); }
+function clearManual() { document.getElementById('manualText').value = ''; showToast('Cancellato.'); }
+
+// ═══════════════ FILE UPLOAD ═══════════════
+let uploadedImgB64 = null;
+function dragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag'); }
+function dragLeave() { document.getElementById('uploadZone').classList.remove('drag'); }
+function dropFile(e) { e.preventDefault(); dragLeave(); handleFile(e.dataTransfer.files[0]); }
+async function handleFile(file) {
+  if (!file) return; uploadedImgB64 = null;
+  document.getElementById('fileName').textContent = file.name; document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+  document.getElementById('uploadPreview').style.display = 'flex'; document.getElementById('uploadProgress').style.display = 'block';
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader(); reader.onload = e => { document.getElementById('previewImg').src = e.target.result; uploadedImgB64 = e.target.result.split(',')[1]; document.getElementById('uploadStatus').textContent = '✓ Immagine pronta'; setTimeout(() => document.getElementById('uploadProgress').style.display = 'none', 2200); }; reader.readAsDataURL(file);
+  } else if (file.type === 'application/pdf') {
+    document.getElementById('previewImg').src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ctext y='32' font-size='32'%3E%F0%9F%93%84%3C/text%3E%3C/svg%3E";
+    document.getElementById('uploadStatus').textContent = 'Estrazione PDF…';
+    try {
+      const ab = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument({ data: ab }).promise; let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const content = await page.getTextContent(); text += content.items.map(it => it.str).join(' ') + '\n'; }
+      transcript = text.trim(); renderTranscript(transcript, ''); setStatus('done', 'PDF caricato');
+      document.getElementById('uploadStatus').textContent = '✓ PDF (' + pdf.numPages + ' pagine)'; setTimeout(() => document.getElementById('uploadProgress').style.display = 'none', 2200); showToast('PDF estratto!');
+    } catch (err) { document.getElementById('uploadStatus').textContent = '⚠ Errore: ' + err.message; }
+  }
+}
+function clearUpload() { uploadedImgB64 = null; document.getElementById('uploadPreview').style.display = 'none'; document.getElementById('uploadProgress').style.display = 'none'; document.getElementById('fileInput').value = ''; }
+
+// ═══════════════ GROQ CALL ═══════════════
+async function callGroq(messages, maxTokens = 1600, model = 'llama-3.3-70b-versatile') {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model, max_tokens: maxTokens, temperature: 0.7, messages }) });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'HTTP ' + res.status); }
+  const d = await res.json(); return d.choices?.[0]?.message?.content || '';
+}
+
+// ═══════════════ TOOLS ═══════════════
+let summaryMode = 'veloce', lastRawOutput = '', lastOutputTitle = '';
+function setSummaryMode(m) { summaryMode = m; document.getElementById('btnVeloce').classList.toggle('active', m === 'veloce'); document.getElementById('btnDettagliato').classList.toggle('active', m === 'dettagliato'); }
+function getActiveText() { return transcript.trim() || document.getElementById('manualText').value.trim(); }
+
+const PROMPTS = {
+  summary: (t, m) => m === 'veloce' ? `Riassunto VELOCE in 5 punti chiave. Usa **grassetto**.\nTesto:"""${t}"""` : `Riassunto DETTAGLIATO: ## Titolo\n## Punti\n## Conclusione\nTesto:"""${t}"""`,
+  mindmap: t => `Mappa concettuale ASCII:\nCONCETTO\n├── Tema1\n└── Tema2\nTesto:"""${t}"""`,
+  flashcard: t => `8 FLASHCARD. Formato:\nDOMANDA: ...\nRISPOSTA: ...\n---\nTesto:"""${t}"""`,
+  quiz: t => `5 domande a scelta multipla (A/B/C/D).\nTesto:"""${t}"""`,
+  simplify: t => `Riscrivi per DSA: frasi brevi, elenchi puntati.\nTesto:"""${t}"""`,
+  glossary: t => `JSON array 12 parole difficili: [{"term":"...","def":"..."}]\nTesto:"""${t}"""`,
+  translate: (t, l) => `Traduci in ${l}. Solo traduzione.\nTesto:"""${t}"""`
+};
+
+async function runTool(type) {
+  if (!apiKey || !apiKey.startsWith('gsk_')) { showToast('Inserisci Groq API Key!', 'err'); return; }
+  const card = document.getElementById('outputCard'), body = document.getElementById('outputBody');
+  document.getElementById('flashcardContainer').style.display = 'none'; document.getElementById('glossaryContainer').style.display = 'none'; document.getElementById('ragionaContainer').style.display = 'none';
+  body.style.display = 'block'; body.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+  card.classList.add('visible'); setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  const titles = { summary: summaryMode === 'veloce' ? '⚡ Riassunto Veloce' : '📖 Riassunto Dettagliato', mindmap: '🗺 Mappa', flashcard: '🃏 Flashcard', quiz: '❓ Quiz', simplify: '✨ Semplificato', glossary: '📖 Glossario', translate: '🌍 Traduzione' };
+  lastOutputTitle = titles[type] || 'Risultato'; document.getElementById('outputTitle').textContent = lastOutputTitle;
+  try {
+    const msgs = [{ role: 'system', content: 'Assistente pedagogico per studenti italiani. Rispondi in italiano.' }];
+    if (uploadedImgB64) {
+      try {
+        const or = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: 'llama-3.2-11b-vision-preview', max_tokens: 2000, messages: [{ role: 'user', content: [{ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + uploadedImgB64 } }, { type: 'text', text: 'Trascrivi il testo visibile.' }] }] }) });
+        if (or.ok) { const od = await or.json(); const ot = od.choices?.[0]?.message?.content || ''; if (ot.length > 20) { transcript = ot; showToast('OCR completato!'); } }
+      } catch (e) {}
+    }
+    const text = getActiveText(); if (!text) { body.innerHTML = '<p style="color:var(--muted);">Nessun testo disponibile.</p>'; return; }
+    let prompt = ''; if (type === 'summary') prompt = PROMPTS.summary(text, summaryMode); else if (type === 'translate') prompt = PROMPTS.translate(text, document.getElementById('targetLang').value); else prompt = PROMPTS[type](text);
+    msgs.push({ role: 'user', content: prompt }); const raw = await callGroq(msgs, 1600); lastRawOutput = raw; incrementAICount();
+    if (type === 'flashcard') { const cards = parseFlashcards(raw); if (cards.length > 0) { body.style.display = 'none'; renderFlashcards(cards); return; } }
+    if (type === 'glossary') { const items = parseGlossary(raw); if (items.length > 0) { body.style.display = 'none'; renderGlossary(items); return; } }
+    body.innerHTML = formatOutput(raw);
+  } catch (err) { body.innerHTML = `<p style="color:var(--red);">⚠ Errore: ${err.message}</p>`; }
+}
+function formatOutput(raw) { return raw.replace(/##\s(.+)/g, '<h2>$1</h2>').replace(/###\s(.+)/g, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/^[-•]\s/gm, '• ').split('\n').map(l => l.startsWith('• ') ? `<li>${l.slice(2)}</li>` : l).join('\n').replace(/((?:<li>.*<\/li>\n?)+)/gs, '<ul>$1</ul>'); }
+
+// ═══════════════ FLASHCARDS ═══════════════
+let fcData = [], fcIndex = 0;
+function parseFlashcards(raw) { return raw.split('---').map(b => b.trim()).filter(Boolean).map(block => { const d = block.match(/DOMANDA:\s*(.+?)(?=RISPOSTA:|$)/s), r = block.match(/RISPOSTA:\s*(.+)/s); return d && r ? { q: d[1].trim(), a: r[1].trim() } : null; }).filter(Boolean); }
+function renderFlashcards(cards) { fcData = cards; fcIndex = 0; document.getElementById('flashcardContainer').style.display = 'block'; showFlashcard(); }
+function showFlashcard() {
+  const c = document.getElementById('flashcardContainer'), card = fcData[fcIndex];
+  c.innerHTML = `<p style="font-size:.74rem;color:var(--muted);margin-bottom:12px;">${fcIndex + 1}/${fcData.length}</p><div style="max-width:380px;margin:0 auto;"><div class="fc-card" onclick="this.classList.toggle('flipped')"><div class="fc-inner"><div class="fc-front"><div class="fc-label">Domanda</div><div class="fc-text">${card.q}</div></div><div class="fc-back"><div class="fc-label">Risposta</div><div class="fc-text">${card.a}</div></div></div></div></div><div class="fc-nav"><button onclick="fcNav(-1)" ${fcIndex===0?'disabled':''}>←</button><span class="fc-progress">${fcIndex+1}/${fcData.length}</span><button onclick="fcNav(1)" ${fcIndex===fcData.length-1?'disabled':''}>→</button></div><button class="btn btn-ghost" onclick="showAllFC()" style="display:block;margin:12px auto 0;">📋 Vedi tutte</button>`;
+}
+function fcNav(d) { fcIndex = Math.max(0, Math.min(fcData.length - 1, fcIndex + d)); showFlashcard(); }
+function showAllFC() { document.getElementById('flashcardContainer').innerHTML = '<div class="fc-grid">' + fcData.map((c, i) => `<div class="fc-card" onclick="this.classList.toggle('flipped')"><div class="fc-inner"><div class="fc-front"><div class="fc-label">${i+1}. Domanda</div><div class="fc-text">${c.q}</div></div><div class="fc-back"><div class="fc-label">Risposta</div><div class="fc-text">${c.a}</div></div></div></div>`).join('') + '</div>'; }
+
+// ═══════════════ GLOSSARY ═══════════════
+function parseGlossary(raw) { try { return JSON.parse(raw.replace(/```json|```/g, '').trim()); } catch { return []; } }
+function renderGlossary(items) { document.getElementById('glossaryContainer').style.display = 'block'; document.getElementById('glossaryContainer').innerHTML = '<div class="glossary-grid">' + items.map(it => `<div class="glossary-item"><div class="glossary-term">${it.term}</div><div class="glossary-def">${it.def}</div></div>`).join('') + '</div>'; }
+
+// ═══════════════ OUTPUT ═══════════════
+function copyOutput() { const t = [document.getElementById('outputBody'), document.getElementById('glossaryContainer'), document.getElementById('flashcardContainer')].map(el => el.innerText).join('\n'); navigator.clipboard.writeText(t).then(() => showToast('Copiato!')); }
+function downloadOutput() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([document.getElementById('outputBody').innerText], { type: 'text/plain' })); a.download = (lastOutputTitle || 'edunity').replace(/[^\w\s]/g, '').replace(/\s+/g, '_') + '.txt'; a.click(); showToast('Scaricato!'); }
+function closeOutput() { document.getElementById('outputCard').classList.remove('visible'); document.getElementById('ragionaContainer').style.display = 'none'; ragionaActive = false; }
+
+// ═══════════════ SAVE MODAL ═══════════════
+let selectedMateria = '';
+function openSaveModal() { document.getElementById('saveModal').classList.add('open'); }
+function closeSaveModal() { document.getElementById('saveModal').classList.remove('open'); }
+function selectMateria(btn, m) { document.querySelectorAll('.materia-opt').forEach(b => b.classList.remove('sel')); btn.classList.add('sel'); selectedMateria = m; }
+
+// ═══════════════ ARCHIVE FIRESTORE ═══════════════
+async function confirmSave() {
+  const user = auth.currentUser; if (!user) { showToast('Accedi per salvare!', 'err'); return; }
+  const lesson = {
+    title: document.getElementById('saveTitle').value.trim() || 'Lezione ' + new Date().toLocaleDateString('it-IT'),
+    materia: selectedMateria || 'Altro', note: document.getElementById('saveNote').value.trim(),
+    content: lastRawOutput || document.getElementById('outputBody').innerText,
+    sourceText: getActiveText(), toolUsed: lastOutputTitle,
+    date: firebase.firestore.FieldValue.serverTimestamp(), userId: user.uid
+  };
+  try { await db.collection('lessons').add(lesson); closeSaveModal(); showToast('Salvato nel cloud! ☁️'); } catch (e) { showToast('Errore: ' + e.message, 'err'); }
+}
+
+let activeMateria = 'Tutte';
+async function renderArchive() {
+  const user = auth.currentUser;
+  if (!user) { document.getElementById('archiveContent').innerHTML = '<div class="empty-archive"><p>Accedi per vedere le tue lezioni.</p></div>'; return; }
+  const content = document.getElementById('archiveContent'); document.getElementById('lessonDetail').classList.remove('active'); content.style.display = 'block';
+  try {
+    const snapshot = await db.collection('lessons').where('userId', '==', user.uid).orderBy('date', 'desc').get();
+    const archive = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('materiaFilter').innerHTML = ['Tutte', ...new Set(archive.map(l => l.materia))].map(m => `<div class="materia-chip ${m===activeMateria?'active':''}" onclick="filterMateria('${m}')">${m}</div>`).join('');
+    if (!archive.length) { content.innerHTML = '<div class="empty-archive"><div class="eicon">📭</div><p>Nessuna lezione. Usa 💾 Salva.</p></div>'; return; }
+    const filtered = activeMateria === 'Tutte' ? archive : archive.filter(l => l.materia === activeMateria);
+    content.innerHTML = '<div class="lesson-grid">' + filtered.map(l => `<div class="lesson-card" onclick="openLesson('${l.id}')"><div class="lesson-card-top"><div class="lesson-card-title">${l.title}</div><span class="lesson-materia">${l.materia}</span></div><div class="lesson-preview">${(l.content||'').replace(/<[^>]+>/g,'').slice(0,120)}…</div><div class="lesson-meta"><span>${l.toolUsed||'—'}</span><span>${l.date?new Date(l.date.toDate()).toLocaleDateString('it-IT'):'—'}</span></div></div>`).join('') + '</div>';
+  } catch (e) { content.innerHTML = '<div class="empty-archive"><p>Errore: ' + e.message + '</p></div>'; }
+}
+function filterMateria(m) { activeMateria = m; renderArchive(); }
+async function openLesson(id) {
+  try {
+    const doc = await db.collection('lessons').doc(id).get(); if (!doc.exists) { showToast('Non trovata', 'err'); return; }
+    const lesson = doc.data(); document.getElementById('archiveContent').style.display = 'none';
+    document.getElementById('lessonDetail').classList.add('active');
+    document.getElementById('lessonDetail').innerHTML = `<div style="display:flex;gap:10px;margin-bottom:20px;"><button class="btn btn-ghost" onclick="closeLesson()">←</button><div style="flex:1;font-weight:700;">${lesson.title}</div><span class="lesson-materia">${lesson.materia}</span><button class="btn btn-danger" onclick="deleteLesson('${id}')">🗑</button></div><div class="output-body">${formatOutput(lesson.content||'')}</div>`;
+  } catch (e) { showToast('Errore', 'err'); }
+}
+function closeLesson() { document.getElementById('archiveContent').style.display = 'block'; document.getElementById('lessonDetail').classList.remove('active'); }
+async function deleteLesson(id) { if (!confirm('Eliminare?')) return; try { await db.collection('lessons').doc(id).delete(); showToast('Eliminata.'); renderArchive(); closeLesson(); } catch (e) { showToast('Errore', 'err'); } }
+async function clearArchive() { if (!confirm('Eliminare TUTTO?')) return; const user = auth.currentUser; const snap = await db.collection('lessons').where('userId', '==', user.uid).get(); const batch = db.batch(); snap.docs.forEach(d => batch.delete(d.ref)); await batch.commit(); showToast('Archivio cancellato.'); renderArchive(); }
+function exportArchive() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([localStorage.getItem('edunity_archive') || '[]'], { type: 'application/json' })); a.download = 'edunity_backup.json'; a.click(); }
+async function migrateLocalToCloud() {
+  const user = auth.currentUser; if (!user) { showToast('Accedi prima!', 'err'); return; }
+  const local = JSON.parse(localStorage.getItem('edunity_archive') || '[]'); if (!local.length) { showToast('Nessun dato locale.'); return; }
+  const batch = db.batch(); local.forEach(l => { const ref = db.collection('lessons').doc(); batch.set(ref, { ...l, userId: user.uid, date: l.date ? firebase.firestore.Timestamp.fromDate(new Date(l.date)) : firebase.firestore.FieldValue.serverTimestamp() }); });
+  await batch.commit(); showToast(local.length + ' lezioni migrate! ☁️'); renderArchive();
+}
+
+// ═══════════════ PROFILE ═══════════════
+function loadProfile() { const p = JSON.parse(localStorage.getItem('edunity_profile') || '{}'); if (p.name) document.getElementById('profileName').value = p.name; if (p.type) document.getElementById('profileType').value = p.type; if (p.classe) document.getElementById('profileClasse').value = p.classe; }
+function saveProfile() { localStorage.setItem('edunity_profile', JSON.stringify({ name: document.getElementById('profileName').value, type: document.getElementById('profileType').value, classe: document.getElementById('profileClasse').value })); renderProfile(); }
+async function renderProfile() {
+  const p = JSON.parse(localStorage.getItem('edunity_profile') || '{}'), user = auth.currentUser;
+  if (!user) return;
+  document.getElementById('profileNameDisplay').textContent = p.name || user.displayName || 'Studente';
+  document.getElementById('avatarEl').textContent = (p.name || user.displayName || 'S')[0].toUpperCase();
+  document.getElementById('profileSub').textContent = 'EdUnity · ' + ({ standard: 'Standard', dsa: 'DSA', atleta: 'Atleta' }[p.type] || 'Studente');
+  try { const snap = await db.collection('lessons').where('userId', '==', user.uid).get(); document.getElementById('statLezioni').textContent = snap.size; document.getElementById('statMaterie').textContent = new Set(snap.docs.map(d => d.data().materia)).size; } catch (e) {}
+  document.getElementById('statAI').textContent = parseInt(localStorage.getItem('edunity_ai_count') || '0');
+}
+function incrementAICount() { localStorage.setItem('edunity_ai_count', parseInt(localStorage.getItem('edunity_ai_count') || '0') + 1); }
+
+// ═══════════════ RAGIONA ═══════════════
+let ragionaHistory = [], ragionaScore = 0, ragionaActive = false;
+async function startRagiona() {
+  const text = getActiveText(); if (!text) { showToast('Inserisci del testo!'); return; }
+  if (!apiKey || !apiKey.startsWith('gsk_')) { showToast('Inserisci Groq API Key!'); return; }
+  ragionaHistory = [{ role: 'system', content: `Tutor socratico. Testo:"""${text}"""Fai UNA domanda. JSON:{"feedback":"ok"|"partial"|"wrong","comment":"...","score_delta":10|5|0,"next_question":"...","is_last":false}Dopo 5 domande is_last:true e "gaps":"..."` }];
+  ragionaScore = 0; ragionaActive = true;
+  document.getElementById('outputTitle').textContent = '🧠 Ragiona';
+  document.getElementById('outputBody').style.display = 'none'; document.getElementById('flashcardContainer').style.display = 'none'; document.getElementById('glossaryContainer').style.display = 'none';
+  document.getElementById('ragionaContainer').style.display = 'block'; document.getElementById('outputCard').classList.add('visible');
+  const fq = await callGroqRagiona(''); renderRagionaChat(safeParseRagiona(fq)?.next_question || 'Cosa ricordi?');
+}
+async function sendRagiona() {
+  if (!ragionaActive) return;
+  const answer = document.getElementById('ragionaUserInput').value.trim(); if (!answer) return;
+  document.getElementById('ragionaUserInput').value = ''; addMsg('user', answer); ragionaHistory.push({ role: 'user', content: answer });
+  try {
+    const raw = await callGroqRagiona(answer); const p = safeParseRagiona(raw);
+    if (!p) { addMsg('ai', 'Ripeti?'); return; }
+    ragionaScore = Math.min(100, ragionaScore + (p.score_delta || 0)); updateRagionaScore();
+    if (p.comment) { const fb = document.createElement('div'); fb.className = 'msg-feedback ' + (p.feedback || 'partial'); fb.textContent = (p.feedback === 'ok' ? '✅' : p.feedback === 'wrong' ? '❌' : '⚡') + ' ' + p.comment; document.getElementById('ragionaMessages').appendChild(fb); }
+    if (p.is_last) { ragionaActive = false; showRagionaEnd(p.gaps || ''); }
+    else { addMsg('ai', p.next_question); ragionaHistory.push({ role: 'assistant', content: JSON.stringify(p) }); }
+  } catch (e) { addMsg('ai', '⚠ Errore'); }
+}
+async function callGroqRagiona(msg) {
+  const msgs = [...ragionaHistory, { role: 'user', content: msg || 'Inizia.' }];
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: 'llama-3.3-70b-versatile', max_tokens: 400, temperature: 0.5, messages: msgs }) });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return (await res.json()).choices?.[0]?.message?.content || '';
+}
+function safeParseRagiona(raw) { try { return JSON.parse(raw.replace(/```json|```/g, '').trim()); } catch { const m = raw.match(/\{[\s\S]*\}/); if (m) try { return JSON.parse(m[0]); } catch {} return null; } }
+function addMsg(role, text) { const rc = document.getElementById('ragionaMessages'), div = document.createElement('div'); div.className = 'msg msg-' + role; div.innerHTML = `<div class="msg-bubble">${text}</div>`; rc.appendChild(div); rc.scrollTop = rc.scrollHeight; }
+function updateRagionaScore() { const f = document.getElementById('ragionaScoreFill'), n = document.getElementById('ragionaScoreNum'); if (f) f.style.width = ragionaScore + '%'; if (n) n.textContent = ragionaScore + '%'; }
+function showRagionaEnd(gaps) {
+  const rc = document.getElementById('ragionaContainer'); rc.innerHTML += `<div style="text-align:center;padding:20px;background:var(--accent-light);border-radius:var(--radius);margin-top:12px;"><div style="font-size:2rem;font-weight:700;color:var(--accent);">${ragionaScore}%</div>${gaps&&gaps!=='Nessuno!'?`<p>📌 ${gaps}</p>`:'<p>✅ Perfetto!</p>'}<button class="btn btn-secondary" onclick="startRagiona()">🔄 Riprova</button></div>`;
+  incrementAICount();
+}
+function renderRagionaChat(fq) {
+  document.getElementById('ragionaContainer').innerHTML = `<div class="ragiona-score-bar-wrap"><span>Comprensione</span><div class="ragiona-score-bar"><div class="ragiona-score-fill" id="ragionaScoreFill" style="width:0%"></div></div><span class="ragiona-score-num" id="ragionaScoreNum">0%</span></div><div class="ragiona-messages" id="ragionaMessages"></div><div class="ragiona-input-row"><textarea class="ragiona-input" id="ragionaUserInput" placeholder="Risposta…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendRagiona();}"></textarea><button class="btn btn-primary" onclick="sendRagiona()">Invia</button></div>`;
+  addMsg('ai', fq);
+}
+
+// ═══════════════ TOAST ═══════════════
+let toastTimer = null;
+function showToast(msg, type = '') { const t = document.getElementById('toast'); document.getElementById('toastMsg').textContent = msg; t.className = 'toast' + (type === 'err' ? ' toast-err' : '') + ' show'; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800); }
+</script>
+</body>
+</html>
