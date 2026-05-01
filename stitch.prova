@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="light" lang="it"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "surface-variant": "#e1e2ed",
+                "tertiary-fixed": "#ffddb8",
+                "on-surface": "#191b23",
+                "on-primary": "#ffffff",
+                "outline": "#737686",
+                "primary": "#004ac6",
+                "surface-container": "#ededf9",
+                "tertiary-fixed-dim": "#ffb95f",
+                "tertiary": "#784b00",
+                "surface-container-highest": "#e1e2ed",
+                "inverse-on-surface": "#f0f0fb",
+                "error-container": "#ffdad6",
+                "surface-container-low": "#f3f3fe",
+                "primary-fixed-dim": "#b4c5ff",
+                "on-background": "#191b23",
+                "on-secondary-fixed-variant": "#005236",
+                "outline-variant": "#c3c6d7",
+                "surface-dim": "#d9d9e5",
+                "error": "#ba1a1a",
+                "background": "#faf8ff",
+                "on-primary-fixed-variant": "#003ea8",
+                "secondary": "#006c49",
+                "on-tertiary-fixed": "#2a1700",
+                "surface": "#faf8ff",
+                "on-surface-variant": "#434655",
+                "on-tertiary-fixed-variant": "#653e00",
+                "surface-bright": "#faf8ff",
+                "primary-fixed": "#dbe1ff",
+                "on-tertiary-container": "#ffeedd",
+                "primary-container": "#2563eb",
+                "on-tertiary": "#ffffff",
+                "secondary-fixed": "#6ffbbe",
+                "surface-container-high": "#e7e7f3",
+                "secondary-container": "#6cf8bb",
+                "surface-container-lowest": "#ffffff",
+                "on-secondary-fixed": "#002113",
+                "inverse-primary": "#b4c5ff",
+                "on-primary-container": "#eeefff",
+                "on-secondary": "#ffffff",
+                "inverse-surface": "#2e3039",
+                "secondary-fixed-dim": "#4edea3",
+                "on-error": "#ffffff",
+                "surface-tint": "#0053db",
+                "tertiary-container": "#996100",
+                "on-primary-fixed": "#00174b",
+                "on-error-container": "#93000a",
+                "on-secondary-container": "#00714d"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "sm": "12px",
+                "lg": "40px",
+                "base": "8px",
+                "xs": "4px",
+                "gutter": "24px",
+                "md": "24px",
+                "container-max": "1120px"
+            },
+            "fontFamily": {
+                "h2": ["Newsreader"],
+                "label-sm": ["Plus Jakarta Sans"],
+                "h3": ["Newsreader"],
+                "h1": ["Newsreader"],
+                "body-md": ["Plus Jakarta Sans"],
+                "body-lg": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                "h2": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                "label-sm": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #f5f3ee; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 border-b border-outline-variant/30 bg-[#f5f3ee]">
+<div class="flex justify-between items-center max-w-[1120px] mx-auto px-4 md:px-8 h-16">
+<div class="flex items-center gap-3 cursor-pointer active:opacity-70">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="school">school</span>
+<span class="font-h1 text-2xl text-primary tracking-tight">EdUnity</span>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">Studio</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors" href="#">Archivio</a>
+<a class="text-primary font-bold pb-1 border-b-2 border-primary" href="#">Profilo</a>
+</nav>
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full border border-outline-variant overflow-hidden cursor-pointer">
+<img alt="Student Profile Avatar" class="w-full h-full object-cover" data-alt="A close-up portrait of a young Italian student with a focused and friendly expression, set against a soft-focus academic library background. The lighting is warm and natural, highlighting the clean and minimalist aesthetic of the scene. The overall color palette is composed of soft creams, whites, and subtle blues, reflecting a calm intellectual atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqmqd-84j1eLYvbL3FcHD6oG9BmnH-XDoPbI0XfNoPj9shrz2dYrMRJv10-w04c-sy_ePHMN1L4zSNKrhLRwkYCC1yLE5tbQvoJj9h3rTZX4-GNbsv0o5rVR44GMyG6Gxres-7oMrDGFt3wg2W5g4y0EZK8PNy1x-wTvTrAX4Nwc-fBkoJKKFlrKdnzAGOof4rkxvr09kryWKJVdf-FSQcJ8x_R5ZOS0StK6mSVlYoIN-Ib7z9dxmCxI595PMUFXssMcsgtXU2411o"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 max-w-[1120px] mx-auto px-4 md:px-8">
+<!-- Header Section -->
+<section class="flex flex-col items-center mb-lg text-center">
+<div class="relative mb-md">
+<div class="w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden">
+<img alt="Luca Rossi" class="w-full h-full object-cover" data-alt="A professional profile photo of a young male student, Luca Rossi, with a clean and polished appearance. He is wearing a simple white linen shirt, standing in a brightly lit, modern architectural space with clean lines and a minimalist feel. The image uses a high-key lighting style with a palette of whites and soft neutral tones to convey reliability and intellectual focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7CXWP_jTS2JbFmfrxU0aPCNmFG-pz7nOe1eCUlINEp_1L6ZoMpICc1Uv4RnwaoJxyM323DiJV-0qVcVFD4SDUAh_8suG_UIhdnS6t_6w-xHp_cfNXBW3B-vN2GDvZYrcfeNXf6D8xqXcMnckt_IoKehySQD5fyk5epFeVHlgB-zYufDQwknRQAextO-uLtnhQ4eJhPmuA2V0MqWDO9a4rCfDhz6Vl3oQUiluQW-cOcEw14ODq-PiUwxckHUx4OdEAolS65rne01lB"/>
+</div>
+<button class="absolute bottom-1 right-1 bg-primary text-white p-2 rounded-full shadow-lg hover:bg-primary-container transition-all cursor-pointer ring-4 ring-white">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+<h1 class="font-h1 text-h1 text-on-surface mb-xs">Luca Rossi</h1>
+<p class="font-body-md text-outline">Liceo Scientifico "G. Galilei" • Classe 5^A</p>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Settings Section (Left Column) -->
+<div class="lg:col-span-7 space-y-gutter">
+<div class="bg-white p-md rounded-xl border border-outline-variant/30 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+<div class="flex items-center gap-3 mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="settings">settings</span>
+<h2 class="font-h3 text-h3">Preferenze di Studio</h2>
+</div>
+<div class="space-y-sm">
+<label class="font-label-sm text-outline block mb-xs uppercase tracking-wider text-[11px]">TIPO STUDENTE</label>
+<div class="flex flex-col gap-sm">
+<label class="relative flex items-center justify-between p-sm border border-outline-variant/50 rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors group">
+<div class="flex flex-col">
+<span class="font-label-sm text-on-surface">Standard</span>
+<span class="text-xs text-outline">Layout classico</span>
+</div>
+<input class="w-5 h-5 text-primary focus:ring-primary border-outline-variant rounded-full" name="student_type" type="radio"/>
+</label>
+<label class="relative flex items-center justify-between p-sm border-2 border-primary bg-primary/5 rounded-xl cursor-pointer transition-colors group">
+<div class="flex flex-col">
+<span class="font-label-sm text-primary">DSA</span>
+<span class="text-xs text-primary/70">Font alta leggibilità</span>
+</div>
+<input checked="" class="w-5 h-5 text-primary focus:ring-primary border-primary rounded-full" name="student_type" type="radio"/>
+</label>
+<label class="relative flex items-center justify-between p-sm border border-outline-variant/50 rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors group">
+<div class="flex flex-col">
+<span class="font-label-sm text-on-surface">Atleta</span>
+<span class="text-xs text-outline">Focus schedule</span>
+</div>
+<input class="w-5 h-5 text-primary focus:ring-primary border-outline-variant rounded-full" name="student_type" type="radio"/>
+</label>
+</div>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant/20">
+<div class="flex items-center justify-between">
+<div>
+<h4 class="font-label-sm text-on-surface">Notifiche Smart AI</h4>
+<p class="text-xs text-outline">Ricevi suggerimenti basati sul carico di studio</p>
+</div>
+<div class="relative inline-block w-12 h-6 rounded-full bg-primary/20 transition-colors cursor-pointer">
+<div class="absolute left-1 top-1 w-4 h-4 bg-primary rounded-full translate-x-6 transition-transform"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-sm">
+<button class="w-full bg-primary text-white font-label-sm py-4 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-container transition-all active:scale-[0.98] shadow-sm">
+<span class="material-symbols-outlined" data-icon="ios_share">ios_share</span>
+                        Esporta Dati
+                    </button>
+<button class="w-full bg-white text-error border border-error/30 font-label-sm py-4 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-error/5 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined" data-icon="delete_sweep">delete_sweep</span>
+                        Cancella Archivio
+                    </button>
+</div>
+</div>
+<!-- Stats Section (Right Column) - Bento Style -->
+<div class="lg:col-span-5 flex flex-col gap-sm">
+<div class="bg-white p-md rounded-xl border border-outline-variant/30 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex items-center justify-between">
+<div>
+<p class="font-label-sm text-outline mb-1 uppercase tracking-wider text-[11px]">Strumenti AI</p>
+<h3 class="font-h1 text-4xl text-primary">120</h3>
+</div>
+<div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-white p-md rounded-xl border border-outline-variant/30 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+<div class="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center mb-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="book">book</span>
+</div>
+<p class="font-label-sm text-outline mb-1 uppercase tracking-wider text-[10px]">Materie</p>
+<h3 class="font-h3 text-h3">8</h3>
+</div>
+<div class="bg-white p-md rounded-xl border border-outline-variant/30 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+<div class="w-10 h-10 bg-tertiary/10 rounded-lg flex items-center justify-center mb-sm">
+<span class="material-symbols-outlined text-tertiary" data-icon="bookmark">bookmark</span>
+</div>
+<p class="font-label-sm text-outline mb-1 uppercase tracking-wider text-[10px]">Salvate</p>
+<h3 class="font-h3 text-h3">42</h3>
+</div>
+</div>
+<div class="bg-primary p-md rounded-xl flex items-center gap-4 text-white shadow-lg">
+<div class="flex-1">
+<h4 class="font-label-sm opacity-80 mb-1 text-[12px]">Status Prossima Verifica</h4>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span>
+<span class="font-h3 text-xl">Matematica (Domani)</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-3xl opacity-50" data-icon="event_note">event_note</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-safe bg-white/95 backdrop-blur-md border-t border-outline-variant/20 md:hidden z-50">
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 active:scale-95 transition-transform py-2 px-4" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+<span class="font-label-sm text-[10px] mt-1">Studio</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/70 active:scale-95 transition-transform py-2 px-4" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-sm text-[10px] mt-1">Archivio</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary bg-primary/5 rounded-xl py-2 px-6 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined font-variation-fill" data-icon="person">person</span>
+<span class="font-label-sm text-[10px] mt-1">Profilo</span>
+</a>
+</nav>
+</body></html>
