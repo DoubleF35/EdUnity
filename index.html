@@ -433,7 +433,7 @@ header {
 
 <script>
 // ═══ FIREBASE ═══
-firebase.initializeApp({apiKey:"AIzaSyDAzftdj79S55mmQKALxVwF6CF0OcO0J8Y",authDomain:"edunity-4ce21.firebaseapp.com",projectId:"edunity-4ce21",storageBucket:"edunity-4ce21.firebasestorage.app",messagingSenderId:"905851013698",appId:"1:905851013698:web:daddb68c46981d7719fbdb",measurementId:"G-XXXXXXXXXX"});
+firebase.initializeApp({apiKey:"AIzaSyDAzftdj79S55mmQKALxVwF6CF0OcO0J8Y",authDomain:"edunity-4ce21.firebaseapp.com",projectId:"edunity-4ce21",storageBucket:"edunity-4ce21.firebasestorage.app",messagingSenderId:"905851013698",appId:"1:905851013698:web:daddb68c46981d7719fbdb",measurementId:"G-XXXXXXXXXX",databaseURL:"https://edunity-4ce21-default-rtdb.europe-west1.firebasedatabase.app"});
 const auth=firebase.auth(),db=firebase.firestore(),rtdb=firebase.database(),analytics=firebase.analytics();
 try{db.enablePersistence().catch(()=>{})}catch(e){}
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
