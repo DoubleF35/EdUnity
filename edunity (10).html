@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <title>EdUnity — Studia Meglio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+<style>
+:root {
+  --bg: #f8f7f4;
+  --surface: #fff;
+  --border: #e8e5e0;
+  --accent: #2563eb;
+  --green: #16a34a;
+  --red: #dc2626;
+  --text: #1a1a1a;
+  --text2: #555;
+  --muted: #999;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ═══ LOGIN PAGE ═══ */
+.auth-wrapper {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg);
+}
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: 0 2px 20px rgba(0,0,0,.06);
+}
+.auth-card h2 { font-size: 1.4rem; text-align: center; margin-bottom: 4px; }
+.auth-card p { font-size: .85rem; color: var(--muted); text-align: center; margin-bottom: 20px; }
+.auth-tabs { display: flex; gap: 0; margin-bottom: 20px; background: var(--bg); border-radius: 10px; padding: 3px; }
+.auth-tab { flex: 1; padding: 10px; text-align: center; border: none; background: none; font-size: .85rem; font-weight: 500; color: var(--muted); cursor: pointer; border-radius: 8px; }
+.auth-tab.active { background: var(--accent); color: #fff; font-weight: 600; }
+.auth-input { width: 100%; padding: 12px 14px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 10px; font-size: .9rem; background: var(--bg); outline: none; }
+.auth-input:focus { border-color: var(--accent); }
+.auth-btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: .9rem; font-weight: 600; cursor: pointer; margin-top: 6px; }
+.auth-btn-primary { background: var(--accent); color: #fff; }
+.auth-btn-google { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.auth-link { text-align: center; margin-top: 12px; }
+.auth-link a { font-size: .8rem; color: var(--accent); cursor: pointer; }
+.auth-error { color: var(--red); font-size: .75rem; margin-top: 6px; display: none; }
+.auth-success { color: var(--green); font-size: .75rem; margin-top: 6px; display: none; }
+.auth-divider { text-align: center; margin: 14px 0; font-size: .75rem; color: var(--muted); }
+
+/* ═══ HEADER ═══ */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(248,247,244,.95); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+}
+.logo { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.logo-icon { width: 28px; height: 28px; border-radius: 7px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 700; }
+.header-actions { display: flex; align-items: center; gap: 6px; }
+.btn-icon { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: .85rem; }
+
+/* ═══ BOTTOM NAV ═══ */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: var(--surface); border-top: 1px solid var(--border);
+  display: flex; padding: 6px 8px 10px;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 4px; border: none; background: none; cursor: pointer;
+  color: var(--muted); font-size: .65rem; font-weight: 500;
+  transition: color .15s;
+}
+.nav-item .nav-icon { font-size: 1.2rem; }
+.nav-item.active { color: var(--accent); font-weight: 600; }
+
+/* ═══ PAGES ═══ */
+.page { display: none; padding: 16px 16px 90px; max-width: 800px; margin: 0 auto; }
+.page.active { display: block; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ═══ CARDS ═══ */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.card-title { font-size: .95rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
+/* ═══ BUTTONS ═══ */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 10px; font-size: .8rem; font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-outline { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn-danger { background: #fef2f2; color: var(--red); }
+.btn-sm { padding: 6px 12px; font-size: .72rem; border-radius: 8px; }
+.btn-block { width: 100%; justify-content: center; }
+.btn:disabled { opacity: .4; }
+
+/* ═══ RECORDER ═══ */
+.mode-switch { display: flex; gap: 2px; background: var(--bg); border-radius: 10px; padding: 3px; margin-bottom: 12px; }
+.mode-btn { flex: 1; padding: 8px; border: none; background: none; font-size: .72rem; font-weight: 500; color: var(--muted); cursor: pointer; border-radius: 8px; text-align: center; }
+.mode-btn.active { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+.status-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.status-badge { font-size: .7rem; padding: 5px 10px; border-radius: 20px; background: var(--bg); display: flex; align-items: center; gap: 5px; }
+.status-badge.rec { background: #fef2f2; color: var(--red); }
+.status-badge.done { background: #f0fdf4; color: var(--green); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.dot.live { background: var(--red); animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+.timer { font-size: .85rem; font-weight: 600; color: var(--muted); text-align: right; min-width: 40px; }
+.recorder-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+
+/* ═══ TRANSCRIPT ═══ */
+.transcript-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.transcript-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; min-height: 90px; max-height: 180px; overflow-y: auto; padding: 12px; font-size: .8rem; line-height: 1.6; color: var(--text2); }
+.section-label { font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+
+/* ═══ TOOLS GRID ═══ */
+.tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 20px; }
+.tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; transition: all .15s; }
+.tool-card:active { border-color: var(--accent); }
+.tool-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.tool-label { font-size: .75rem; font-weight: 600; }
+.tool-sublabel { font-size: .62rem; color: var(--muted); }
+
+/* ═══ UPLOAD ═══ */
+.upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 20px; text-align: center; cursor: pointer; background: var(--bg); }
+.upload-zone p { font-size: .75rem; color: var(--muted); margin-top: 4px; }
+
+/* ═══ OUTPUT ═══ */
+.output-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-top: 16px; display: none; }
+.output-card.visible { display: block; }
+.output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.output-body { background: var(--bg); border-radius: 10px; padding: 14px; font-size: .8rem; line-height: 1.7; color: var(--text2); max-height: 50vh; overflow-y: auto; white-space: pre-wrap; }
+.output-actions { display: flex; gap: 4px; margin-top: 12px; flex-wrap: wrap; }
+
+/* ═══ ARCHIVE ═══ */
+.materia-chips { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+.chip { padding: 5px 12px; border-radius: 14px; font-size: .68rem; font-weight: 500; border: 1px solid var(--border); background: var(--surface); cursor: pointer; }
+.chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.lesson-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; cursor: pointer; }
+.lesson-item h4 { font-size: .85rem; margin-bottom: 4px; }
+.lesson-item p { font-size: .72rem; color: var(--muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.lesson-meta { display: flex; justify-content: space-between; margin-top: 8px; font-size: .65rem; color: var(--muted); }
+
+/* ═══ PROFILE ═══ */
+.profile-avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--green)); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.4rem; font-weight: 700; margin: 0 auto 8px; }
+.profile-name { font-size: 1.1rem; font-weight: 700; text-align: center; }
+.profile-email { font-size: .8rem; color: var(--muted); text-align: center; margin-bottom: 16px; }
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.stat-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; text-align: center; }
+.stat-num { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: .62rem; color: var(--muted); }
+
+/* ═══ MODAL ═══ */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 500; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); width: 100%; max-width: 500px; border-radius: 16px 16px 0 0; padding: 20px; max-height: 80vh; overflow-y: auto; }
+
+/* ═══ PRIVACY ═══ */
+.privacy-page { position: fixed; inset: 0; z-index: 300; background: var(--surface); overflow-y: auto; padding: 20px; display: none; }
+.privacy-page.open { display: block; }
+.privacy-close { float: right; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); font-size: 1rem; cursor: pointer; margin-bottom: 20px; }
+.privacy-page h2 { font-size: 1.2rem; margin-bottom: 16px; }
+.privacy-page h3 { font-size: .95rem; margin: 16px 0 6px; color: var(--accent); }
+.privacy-page p, .privacy-page li { font-size: .82rem; color: var(--text2); line-height: 1.6; }
+.privacy-page ul { padding-left: 18px; }
+
+/* ═══ COOKIE ═══ */
+.cookie-bar { position: fixed; bottom: 70px; left: 12px; right: 12px; z-index: 400; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: none; align-items: center; gap: 8px; font-size: .72rem; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+.cookie-bar button { padding: 7px 14px; border-radius: 8px; background: var(--accent); color: #fff; border: none; font-size: .7rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+
+/* ═══ TOAST ═══ */
+.toast { position: fixed; bottom: 90px; left: 20px; right: 20px; z-index: 600; background: #1a1a1a; color: #fff; padding: 12px 16px; border-radius: 10px; font-size: .8rem; text-align: center; opacity: 0; transform: translateY(20px); transition: all .25s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="auth-wrapper" id="authPage">
+  <div class="auth-card">
+    <h2>EdUnity</h2>
+    <p>Accedi per studiare meglio</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="showTab('login')">Accedi</button>
+      <button class="auth-tab" id="tabRegister" onclick="showTab('register')">Registrati</button>
+    </div>
+    <div id="formLogin">
+      <input type="email" class="auth-input" id="loginEmail" placeholder="Email">
+      <input type="password" class="auth-input" id="loginPassword" placeholder="Password">
+      <div class="auth-error" id="loginError"></div>
+      <button class="auth-btn auth-btn-primary" onclick="doLogin()">🔑 Accedi</button>
+      <div class="auth-link"><a onclick="showTab('reset')">Password dimenticata?</a></div>
+      <div class="auth-divider">oppure</div>
+      <button class="auth-btn auth-btn-google" onclick="doGoogleLogin()">G Accedi con Google</button>
+    </div>
+    <div id="formRegister" style="display:none">
+      <input type="text" class="auth-input" id="regName" placeholder="Nome">
+      <input type="email" class="auth-input" id="regEmail" placeholder="Email">
+      <input type="password" class="auth-input" id="regPassword" placeholder="Password (min. 6 caratteri)">
+      <div class="auth-error" id="regError"></div>
+      <button class="auth-btn auth-btn-primary" onclick="doRegister()">✨ Crea Account</button>
+      <div class="auth-divider">oppure</div>
+      <button class="auth-btn auth-btn-google" onclick="doGoogleLogin()">G Registrati con Google</button>
+    </div>
+    <div id="formReset" style="display:none">
+      <p style="font-size:.82rem;color:var(--text2);margin-bottom:10px">Riceverai un link per reimpostare la password.</p>
+      <input type="email" class="auth-input" id="resetEmail" placeholder="Email">
+      <div class="auth-error" id="resetError"></div>
+      <div class="auth-success" id="resetSuccess"></div>
+      <button class="auth-btn auth-btn-primary" onclick="doResetPassword()">📧 Invia Link</button>
+      <div class="auth-link"><a onclick="showTab('login')">← Torna al login</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<header id="mainHeader" style="display:none">
+  <div class="logo" onclick="goPage('home')"><div class="logo-icon">E</div>EdUnity</div>
+  <div class="header-actions">
+    <div style="font-size:.7rem;color:var(--muted);padding:4px 8px;background:var(--surface);border-radius:16px;border:1px solid var(--border)" id="onlineBadge">○ 0</div>
+    <div class="btn-icon" onclick="document.getElementById('apiMenu').classList.toggle('open')" style="position:relative">🔑</div>
+    <button class="btn-icon" onclick="doLogout()" title="Esci">🚪</button>
+  </div>
+</header>
+
+<!-- ═══ BOTTOM NAV ═══ -->
+<nav class="bottom-nav" id="bottomNav" style="display:none">
+  <button class="nav-item active" onclick="goPage('home')"><span class="nav-icon">📚</span>Studio</button>
+  <button class="nav-item" onclick="goPage('archive')"><span class="nav-icon">📂</span>Archivio</button>
+  <button class="nav-item" onclick="goPage('profile')"><span class="nav-icon">👤</span>Profilo</button>
+</nav>
+
+<!-- ═══ API KEY MENU ═══ -->
+<div id="apiMenu" style="display:none;position:fixed;top:56px;right:12px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;box-shadow:0 4px 16px rgba(0,0,0,.1);width:200px">
+  <input type="password" id="apiKeyInput" placeholder="gsk_..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:.75rem;margin-bottom:4px" oninput="saveKey(this.value)">
+  <span id="keyStatus" style="font-size:.65rem;color:var(--muted)">Inserisci Groq API Key</span>
+</div>
+
+<!-- ═══ PAGES ═══ -->
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="card">
+    <div class="status-row">
+      <div class="card-title" style="margin-bottom:0">🎙 Registra</div>
+      <div class="status-badge" id="statusBadge"><div class="dot"></div><span id="statusText">Pronto</span></div>
+    </div>
+    <div class="mode-switch">
+      <button class="mode-btn active" onclick="setRecMode('web')">🌐 Web Speech</button>
+      <button class="mode-btn" onclick="setRecMode('whisper')">🤖 Whisper</button>
+    </div>
+    <div style="display:flex;gap:4px;align-items:center;margin-bottom:8px">
+      <div style="flex:1;height:28px;background:var(--bg);border-radius:6px;display:flex;align-items:center;gap:1px;padding:0 8px;overflow:hidden" id="waveform"></div>
+      <span class="timer" id="timer">00:00</span>
+    </div>
+    <div class="recorder-actions">
+      <button class="btn btn-primary" id="btnRecord" onclick="toggleRecord()" style="flex:1">⏺ Registra</button>
+      <button class="btn btn-outline" onclick="stopRecord()" disabled id="btnStop">⏹ Stop</button>
+    </div>
+    <div id="whisperRow" style="display:none;margin-bottom:8px">
+      <button class="btn btn-primary btn-block" onclick="transcribeWhisper()" disabled id="btnWhisper">🤖 Trascrivi con Whisper</button>
+    </div>
+    <div class="transcript-header">
+      <span class="section-label" style="margin-bottom:0">Trascrizione</span>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-sm btn-outline" onclick="copyTranscript()">📋</button>
+        <button class="btn btn-sm btn-outline" onclick="clearTranscript()">🗑</button>
+      </div>
+    </div>
+    <div class="transcript-box" id="transcriptBox"><span style="color:var(--muted)">La trascrizione apparirà qui…</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🤖 Strumenti AI</div>
+    <div class="tools-grid">
+      <div class="tool-card" onclick="runTool('summary')"><div class="tool-icon" style="background:#eff6ff">📝</div><div class="tool-label">Riassunto</div><div class="tool-sublabel">Veloce o dettagliato</div></div>
+      <div class="tool-card" onclick="runTool('flashcard')"><div class="tool-icon" style="background:#fffbeb">🃏</div><div class="tool-label">Flashcard</div><div class="tool-sublabel">Domanda/Risposta</div></div>
+      <div class="tool-card" onclick="runTool('mindmap')"><div class="tool-icon" style="background:#f0fdf4">🗺</div><div class="tool-label">Mappa</div><div class="tool-sublabel">Concettuale</div></div>
+      <div class="tool-card" onclick="runTool('quiz')"><div class="tool-icon" style="background:#fef2f2">❓</div><div class="tool-label">Quiz</div><div class="tool-sublabel">5 domande</div></div>
+      <div class="tool-card" onclick="runTool('simplify')"><div class="tool-icon" style="background:#faf5ff">✨</div><div class="tool-label">Semplifica</div><div class="tool-sublabel">Per DSA</div></div>
+      <div class="tool-card" onclick="runTool('glossary')"><div class="tool-icon" style="background:#fffbeb">📖</div><div class="tool-label">Glossario</div><div class="tool-sublabel">Parole difficili</div></div>
+      <div class="tool-card" onclick="runTool('translate')"><div class="tool-icon" style="background:#f0fdf4">🌍</div><div class="tool-label">Traduci</div><div class="tool-sublabel">Altre lingue</div></div>
+      <div class="tool-card" onclick="startRagiona()" style="border-color:#fde68a"><div class="tool-icon" style="background:#fffbeb">🧠</div><div class="tool-label">Ragiona</div><div class="tool-sublabel">Tutor AI</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📎 Inserisci testo</div>
+    <textarea id="manualText" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:.8rem;font-family:'Inter',sans-serif;resize:vertical;min-height:60px;outline:none" placeholder="Incolla appunti, testi o contenuti…"></textarea>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn btn-primary btn-sm" onclick="useManualText()">Usa testo</button>
+      <div class="upload-zone" style="flex:1;padding:8px;font-size:.7rem;cursor:pointer" onclick="document.getElementById('fileInput').click()">📎 Carica PDF/Immagine</div>
+      <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none" onchange="handleFile(this.files[0])">
+    </div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="output-card" id="outputCard">
+    <div class="output-header">
+      <span style="font-weight:700" id="outputTitle">Risultato</span>
+      <button class="btn btn-sm btn-outline" onclick="closeOutput()">✕</button>
+    </div>
+    <div class="output-body" id="outputBody"></div>
+    <div class="output-actions">
+      <button class="btn btn-sm btn-primary" onclick="openSaveModal()">💾 Salva</button>
+      <button class="btn btn-sm btn-outline" onclick="copyOutput()">📋 Copia</button>
+      <button class="btn btn-sm btn-outline" onclick="downloadOutput()">⬇ Testo</button>
+      <button class="btn btn-sm btn-outline" onclick="sendQuickFeedback(true)">👍</button>
+      <button class="btn btn-sm btn-outline" onclick="sendQuickFeedback(false)">👎</button>
+    </div>
+    <div id="flashcardContainer"></div>
+    <div id="glossaryContainer"></div>
+    <div id="ragionaContainer"></div>
+  </div>
+</div>
+
+<!-- ARCHIVE -->
+<div class="page" id="page-archive">
+  <h2 style="font-size:1.2rem;margin-bottom:12px">📂 Archivio Cloud</h2>
+  <div class="materia-chips" id="materiaFilter"></div>
+  <div id="archiveContent"><p style="color:var(--muted);text-align:center;padding:40px 0">Caricamento...</p></div>
+  <div id="lessonDetail" style="display:none"></div>
+</div>
+
+<!-- PROFILE -->
+<div class="page" id="page-profile">
+  <div class="profile-avatar" id="avatarEl">?</div>
+  <div class="profile-name" id="profileNameDisplay">Studente</div>
+  <div class="profile-email" id="accountEmail">—</div>
+  <div class="stats-row">
+    <div class="stat-item"><div class="stat-num" id="statLezioni">0</div><div class="stat-label">Lezioni</div></div>
+    <div class="stat-item"><div class="stat-num" id="statMaterie">0</div><div class="stat-label">Materie</div></div>
+    <div class="stat-item"><div class="stat-num" id="statAI">0</div><div class="stat-label">AI usi</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">⚙️ Impostazioni</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <input class="auth-input" id="profileName" placeholder="Il tuo nome" oninput="saveProfile()">
+      <select class="auth-input" id="profileType" onchange="saveProfile()">
+        <option value="standard">Studente Standard</option>
+        <option value="dsa">Studente con DSA</option>
+        <option value="atleta">Studente-Atleta</option>
+      </select>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🗄️ Dati</div>
+    <button class="btn btn-outline btn-block" onclick="migrateLocalToCloud()">☁️ Migra dati locali al cloud</button>
+    <button class="btn btn-danger btn-block" onclick="clearArchive()" style="margin-top:8px">🗑 Cancella archivio cloud</button>
+  </div>
+  <button class="btn btn-outline btn-block" onclick="doLogout()" style="margin-top:12px">🚪 Logout</button>
+  <p style="text-align:center;margin-top:16px;font-size:.7rem;color:var(--muted)">
+    <a href="#" onclick="openPrivacy()">Privacy Policy</a> · <a href="mailto:edunityedu@gmail.com">Supporto</a>
+  </p>
+</div>
+
+<!-- ═══ SAVE MODAL ═══ -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <h3 style="font-size:1rem;margin-bottom:12px">💾 Salva lezione</h3>
+    <input class="auth-input" id="saveTitle" placeholder="Titolo lezione">
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
+      <button class="chip" onclick="selectMateria(this,'Biologia')">🧬 Biologia</button>
+      <button class="chip" onclick="selectMateria(this,'Matematica')">📐 Matematica</button>
+      <button class="chip" onclick="selectMateria(this,'Storia')">📜 Storia</button>
+      <button class="chip" onclick="selectMateria(this,'Fisica')">⚡ Fisica</button>
+      <button class="chip" onclick="selectMateria(this,'Altro')">📁 Altro</button>
+    </div>
+    <input class="auth-input" id="saveNote" placeholder="Note (opzionale)">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn btn-outline btn-sm" onclick="closeSaveModal()">Annulla</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmSave()">💾 Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PRIVACY ═══ -->
+<div class="privacy-page" id="privacyPage">
+  <button class="privacy-close" onclick="closePrivacy()">✕</button>
+  <h2>Privacy Policy</h2>
+  <p><strong>Ultimo aggiornamento:</strong> 2 Maggio 2026</p>
+  <p>Questa Privacy Policy descrive come EdUnity raccoglie, utilizza e protegge i dati personali.</p>
+  <h3>Titolare</h3>
+  <p>EdUnity — <strong>edunityedu@gmail.com</strong></p>
+  <h3>Dati raccolti</h3>
+  <ul>
+    <li>Email, nome, foto profilo (login Google)</li>
+    <li>Trascrizioni, riassunti, mappe, flashcard generate</li>
+    <li>Feedback inviati volontariamente</li>
+    <li>Stato online/offline (contatore utenti)</li>
+  </ul>
+  <h3>Finalità</h3>
+  <p>Fornire il servizio, sincronizzare lezioni tra dispositivi. I dati <strong>non vengono venduti</strong> né usati per pubblicità.</p>
+  <h3>Servizi terzi</h3>
+  <p>Firebase (Google LLC) per autenticazione e database.</p>
+  <h3>Cookie</h3>
+  <p>Solo cookie tecnici essenziali. Nessuna profilazione.</p>
+  <h3>Diritti GDPR</h3>
+  <p>Accesso, rettifica, cancellazione, portabilità dei dati. Contatta: <strong>edunityedu@gmail.com</strong></p>
+</div>
+
+<!-- ═══ COOKIE ═══ -->
+<div class="cookie-bar" id="cookieBar">
+  <span>🍪 Cookie tecnici essenziali. <a href="#" onclick="openPrivacy()">Info</a></span>
+  <button onclick="acceptCookies()">OK</button>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+// ═══ FIREBASE ═══
+firebase.initializeApp({apiKey:"AIzaSyDAzftdj79S55mmQKALxVwF6CF0OcO0J8Y",authDomain:"edunity-4ce21.firebaseapp.com",projectId:"edunity-4ce21",storageBucket:"edunity-4ce21.firebasestorage.app",messagingSenderId:"905851013698",appId:"1:905851013698:web:daddb68c46981d7719fbdb",measurementId:"G-XXXXXXXXXX"});
+const auth=firebase.auth(),db=firebase.firestore(),rtdb=firebase.database(),analytics=firebase.analytics();
+try{db.enablePersistence().catch(()=>{})}catch(e){}
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ═══ COOKIE ═══
+function acceptCookies(){document.getElementById('cookieBar').style.display='none';localStorage.setItem('cookies','1')}
+if(localStorage.getItem('cookies')==='1')document.getElementById('cookieBar').style.display='none';else document.getElementById('cookieBar').style.display='flex';
+
+// ═══ PRIVACY ═══
+function openPrivacy(){document.getElementById('privacyPage').classList.add('open')}
+function closePrivacy(){document.getElementById('privacyPage').classList.remove('open')}
+
+// ═══ API KEY MENU ═══
+document.addEventListener('click',e=>{if(!e.target.closest('#apiMenu')&&!e.target.closest('.btn-icon'))document.getElementById('apiMenu').style.display='none'});
+let apiKey=localStorage.getItem('edunity_groq_key')||'';
+function saveKey(v){apiKey=v.trim();localStorage.setItem('edunity_groq_key',apiKey);document.getElementById('keyStatus').textContent=apiKey.startsWith('gsk_')?'✓ Chiave salvata':'Inserisci Groq API Key'}
+
+// ═══ AUTH TABS ═══
+function showTab(t){
+  document.getElementById('formLogin').style.display=t==='login'?'block':'none';
+  document.getElementById('formRegister').style.display=t==='register'?'block':'none';
+  document.getElementById('formReset').style.display=t==='reset'?'block':'none';
+  document.getElementById('tabLogin').classList.toggle('active',t==='login'||t==='reset');
+  document.getElementById('tabRegister').classList.toggle('active',t==='register');
+  document.querySelectorAll('.auth-error,.auth-success').forEach(e=>e.style.display='none');
+}
+
+// ═══ AUTH ═══
+async function doGoogleLogin(){
+  const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+  try{await auth.signInWithPopup(p)}catch(e){
+    if(e.code==='auth/popup-blocked')try{await auth.signInWithRedirect(p)}catch(e2){}
+  }
+}
+auth.getRedirectResult().then(r=>{if(r?.user)showToast('Benvenuto!')}).catch(()=>{});
+
+async function doLogin(){
+  const e=document.getElementById('loginEmail').value.trim(),p=document.getElementById('loginPassword').value;
+  if(!e||!p){document.getElementById('loginError').style.display='block';document.getElementById('loginError').textContent='Inserisci email e password';return}
+  try{await auth.signInWithEmailAndPassword(e,p)}catch(err){
+    document.getElementById('loginError').style.display='block';
+    document.getElementById('loginError').textContent=err.code==='auth/user-not-found'?'Utente non trovato':'Password errata';
+  }
+}
+
+async function doRegister(){
+  const e=document.getElementById('regEmail').value.trim(),p=document.getElementById('regPassword').value,n=document.getElementById('regName').value.trim();
+  if(!e||!p||!n){document.getElementById('regError').style.display='block';document.getElementById('regError').textContent='Compila tutti i campi';return}
+  if(p.length<6){document.getElementById('regError').style.display='block';document.getElementById('regError').textContent='Password: minimo 6 caratteri';return}
+  try{const uc=await auth.createUserWithEmailAndPassword(e,p);await uc.user.updateProfile({displayName:n});showToast('Account creato!')}catch(err){
+    document.getElementById('regError').style.display='block';
+    document.getElementById('regError').textContent=err.code==='auth/email-already-in-use'?'Email già registrata':'Errore';
+  }
+}
+
+async function doResetPassword(){
+  const e=document.getElementById('resetEmail').value.trim();
+  if(!e){document.getElementById('resetError').style.display='block';document.getElementById('resetError').textContent='Inserisci email';return}
+  try{await auth.sendPasswordResetEmail(e,{url:window.location.origin});document.getElementById('resetSuccess').style.display='block';document.getElementById('resetSuccess').textContent='Link inviato! Controlla la email.'}catch(err){
+    document.getElementById('resetError').style.display='block';document.getElementById('resetError').textContent='Email non trovata';
+  }
+}
+
+async function doLogout(){
+  const u=auth.currentUser;if(u)await rtdb.ref('online/'+u.uid).remove();
+  await auth.signOut();showToast('Logout effettuato');
+}
+
+// ═══ AUTH OBSERVER ═══
+auth.onAuthStateChanged(u=>{
+  document.getElementById('authPage').style.display=u?'none':'flex';
+  document.getElementById('mainHeader').style.display=u?'flex':'none';
+  document.getElementById('bottomNav').style.display=u?'flex':'none';
+  if(u){
+    document.getElementById('onlineBadge').innerHTML='<span style="color:var(--green)">●</span> online';
+    if(u.displayName){const pn=document.getElementById('profileName');if(pn&&!pn.value)pn.value=u.displayName;saveProfile()}
+    setupPresence(u);
+    if(!document.querySelector('.page.active'))goPage('home');
+  }else{document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))}
+  updateOnlineCounter();
+});
+
+function setupPresence(u){const ref=rtdb.ref('online/'+u.uid);rtdb.ref('.info/connected').on('value',s=>{if(s.val()===true){ref.set({email:u.email,name:u.displayName||'Studente',online:true,lastSeen:firebase.database.ServerValue.TIMESTAMP});ref.onDisconnect().set({email:u.email,name:u.displayName||'Studente',online:false,lastSeen:firebase.database.ServerValue.TIMESTAMP})}})}
+function updateOnlineCounter(){rtdb.ref('online').on('value',s=>{const u=s.val();let c=0;if(u)Object.values(u).forEach(v=>{if(v.online===true)c++});document.getElementById('onlineBadge').innerHTML=c>0?`<span style="color:var(--green)">●</span> ${c}`:`<span style="color:var(--muted)">○</span> 0`})}
+
+// ═══ NAVIGATION ═══
+function goPage(id){
+  if(!auth.currentUser)return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pe=document.getElementById('page-'+id);if(pe)pe.classList.add('active');
+  const map={home:0,archive:1,profile:2};
+  if(map[id]!==undefined)document.querySelectorAll('.nav-item')[map[id]].classList.add('active');
+  if(id==='archive')renderArchive();if(id==='profile')renderProfile();
+}
+
+// ═══ RECORDER ═══
+let recMode='web',micState='idle',transcript='',recognition,mediaRecorder,audioChunks=[],micStream,timerSec=0,timerInt;
+function setRecMode(m){recMode=m;document.querySelectorAll('.mode-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&m==='web')||(i===1&&m==='whisper')));document.getElementById('whisperRow').style.display=m==='whisper'?'block':'none'}
+function toggleRecord(){micState==='idle'||micState==='stopped'?startRecord():micState==='recording'?pauseRecord():resumeRecord()}
+async function startRecord(){micState='recording';updateRecUI();if(recMode==='web')startWebSpeech();else await startWhisperRec();document.getElementById('waveform').style.background='var(--accent-light)';startTimer()}
+function pauseRecord(){micState='paused';if(recMode==='web'&&recognition)recognition.stop();else if(mediaRecorder)mediaRecorder.pause();stopTimer();updateRecUI()}
+function resumeRecord(){micState='recording';if(recMode==='web')startWebSpeech();else if(mediaRecorder)mediaRecorder.resume();startTimer();updateRecUI()}
+function stopRecord(){if(micState==='idle')return;micState='stopped';if(recMode==='web'&&recognition)recognition.stop();else stopWhisperRec();stopTimer();document.getElementById('waveform').style.background='';document.getElementById('btnStop').disabled=true;updateRecUI();setStatus('done','Registrato')}
+function updateRecUI(){
+  const b=document.getElementById('btnRecord'),s=document.getElementById('btnStop');
+  if(micState==='recording'){b.textContent='⏸ Pausa';s.disabled=false}
+  else if(micState==='paused'){b.textContent='▶ Riprendi';s.disabled=false}
+  else{b.textContent='⏺ Registra';s.disabled=true}
+}
+function setStatus(c,t){const b=document.getElementById('statusBadge');b.className='status-badge'+(c?' '+c:'');b.innerHTML=(c==='rec'?'<div class="dot live"></div>':'<div class="dot"></div>')+'<span>'+t+'</span>'}
+function startTimer(){timerSec=0;timerInt=setInterval(()=>{timerSec++;document.getElementById('timer').textContent=String(Math.floor(timerSec/60)).padStart(2,'0')+':'+String(timerSec%60).padStart(2,'0')},1000)}
+function stopTimer(){clearInterval(timerInt);timerSec=0;document.getElementById('timer').textContent='00:00'}
+
+// ═══ WEB SPEECH ═══
+function startWebSpeech(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;recognition=new SR();recognition.lang='it-IT';recognition.continuous=true;recognition.interimResults=true;recognition.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)transcript+=e.results[i][0].transcript+' ';else interim+=e.results[i][0].transcript}renderTranscript(transcript,interim)};recognition.onend=()=>{if(micState==='recording')startWebSpeech()};try{recognition.start()}catch(e){}}
+
+// ═══ WHISPER ═══
+async function startWhisperRec(){try{micStream=await navigator.mediaDevices.getUserMedia({audio:true});audioChunks=[];mediaRecorder=new MediaRecorder(micStream);mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data)};mediaRecorder.start(1000)}catch(e){}};
+function stopWhisperRec(){if(mediaRecorder)mediaRecorder.stop();if(micStream)micStream.getTracks().forEach(t=>t.stop());setTimeout(()=>{document.getElementById('btnWhisper').disabled=audioChunks.length===0},500)}
+async function transcribeWhisper(){if(!audioChunks.length||!apiKey)return;const b=document.getElementById('btnWhisper');b.disabled=true;b.textContent='Trascrizione...';try{const blob=new Blob(audioChunks,{type:'audio/webm'});const fd=new FormData();fd.append('file',blob,'audio.webm');fd.append('model','whisper-large-v3-turbo');fd.append('language','it');fd.append('response_format','text');const r=await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{'Authorization':'Bearer '+apiKey},body:fd});if(!r.ok)throw new Error('Errore');transcript=(await r.text()).trim();renderTranscript(transcript,'');setStatus('done','Trascritto');incrementAICount()}catch(e){showToast('Errore: '+e.message,'err')}finally{b.disabled=false;b.textContent='🤖 Trascrivi con Whisper'}}
+
+// ═══ TRANSCRIPT ═══
+function renderTranscript(f,i){const b=document.getElementById('transcriptBox');b.innerHTML='';if(f)b.innerHTML+=f;if(i)b.innerHTML+='<span style="color:var(--muted);font-style:italic">'+i+'</span>';if(!f&&!i)b.innerHTML='<span style="color:var(--muted)">La trascrizione apparirà qui…</span>'}
+function clearTranscript(){transcript='';audioChunks=[];document.getElementById('transcriptBox').innerHTML='<span style="color:var(--muted)">La trascrizione apparirà qui…</span>';setStatus('','Pronto')}
+function useManualText(){const t=document.getElementById('manualText').value.trim();if(!t)return;transcript=t;document.getElementById('transcriptBox').textContent=t.slice(0,400);setStatus('done','Caricato')}
+function copyTranscript(){navigator.clipboard.writeText(transcript||document.getElementById('transcriptBox').innerText).then(()=>showToast('Copiato!'))}
+
+// ═══ UPLOAD ═══
+async function handleFile(file){if(!file)return;if(file.type.startsWith('image/')){const r=new FileReader();r.onload=e=>{uploadedImgB64=e.target.result.split(',')[1]};r.readAsDataURL(file)}else if(file.type==='application/pdf'){try{const ab=await file.arrayBuffer(),pdf=await pdfjsLib.getDocument({data:ab}).promise;let t='';for(let i=1;i<=pdf.numPages;i++)t+=(await(await pdf.getPage(i)).getTextContent()).items.map(it=>it.str).join(' ')+'\n';transcript=t.trim();renderTranscript(transcript,'');setStatus('done','PDF caricato')}catch(e){}}}
+let uploadedImgB64=null;
+
+// ═══ TOOLS ═══
+let summaryMode='veloce',lastRawOutput='',lastOutputTitle='';
+function setSummaryMode(m){summaryMode=m}
+function getActiveText(){return transcript.trim()||document.getElementById('manualText').value.trim()}
+async function runTool(type){
+  if(!apiKey){showToast('Inserisci Groq API Key!','err');return}
+  const body=document.getElementById('outputBody');body.innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">⏳ Elaborazione...</p>';
+  document.getElementById('outputCard').classList.add('visible');
+  const titles={summary:'📝 Riassunto',mindmap:'🗺 Mappa',flashcard:'🃏 Flashcard',quiz:'❓ Quiz',simplify:'✨ Semplificato',glossary:'📖 Glossario',translate:'🌍 Traduzione'};
+  lastOutputTitle=titles[type]||'Risultato';document.getElementById('outputTitle').textContent=lastOutputTitle;
+  try{
+    const text=getActiveText();if(!text){body.innerHTML='<p style="color:var(--muted)">Nessun testo disponibile.</p>';return}
+    const prompts={summary:'Riassunto'+(summaryMode==='veloce'?' breve in 5 punti.':' dettagliato con titoli.'),mindmap:'Mappa concettuale ASCII.',flashcard:'8 Flashcard DOMANDA/RISPOSTA separate da ---.',quiz:'Quiz 5 domande a scelta multipla.',simplify:'Riscrivi per DSA: frasi brevi.',glossary:'JSON array 12 parole difficili.',translate:'Traduci in '+document.getElementById('targetLang')?.value||'inglese'+'.'};
+    const msgs=[{role:'system',content:'Assistente pedagogico italiano.'},{role:'user',content:prompts[type]+'\nTesto:\n"""'+text+'"""'}];
+    const raw=await callGroq(msgs);lastRawOutput=raw;incrementAICount();
+    if(type==='flashcard'){const cards=parseFlashcards(raw);if(cards.length){body.style.display='none';renderFlashcards(cards);return}}
+    if(type==='glossary'){const items=parseGlossary(raw);if(items.length){body.style.display='none';renderGlossary(items);return}}
+    body.innerHTML=formatOutput(raw);body.style.display='block';
+  }catch(e){body.innerHTML='<p style="color:var(--red)">⚠ '+e.message+'</p>'}
+}
+async function callGroq(msgs){const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1600,temperature:0.7,messages:msgs})});if(!r.ok)throw new Error((await r.json()).error?.message||'Errore');return(await r.json()).choices?.[0]?.message?.content||''}
+function formatOutput(raw){return raw.replace(/##\s(.+)/g,'<h2>$1</h2>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/^[-•]/gm,'•')}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('outputBody').innerText).then(()=>showToast('Copiato!'))}
+function downloadOutput(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([document.getElementById('outputBody').innerText],{type:'text/plain'}));a.download='edunity.txt';a.click()}
+function closeOutput(){document.getElementById('outputCard').classList.remove('visible')}
+
+// ═══ FLASHCARDS ═══
+let fcData=[],fcIndex=0;
+function parseFlashcards(raw){return raw.split('---').map(b=>b.trim()).filter(Boolean).map(b=>{const d=b.match(/DOMANDA:\s*(.+?)(?=\n?RISPOSTA:|$)/s),r=b.match(/RISPOSTA:\s*(.+)/s);return d&&r?{q:d[1].trim(),a:r[1].trim()}:null}).filter(Boolean)}
+function renderFlashcards(cards){fcData=cards;fcIndex=0;showFlashcard()}
+function showFlashcard(){const c=document.getElementById('flashcardContainer');c.style.display='block';const card=fcData[fcIndex];c.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:8px"><p style="font-size:.7rem;color:var(--muted)">'+(fcIndex+1)+'/'+fcData.length+'</p><p style="font-weight:600;margin:8px 0">'+card.q+'</p><p style="color:var(--green);font-size:.9rem">'+card.a+'</p></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-sm btn-outline" onclick="fcNav(-1)" '+(fcIndex===0?'disabled':'')+'>←</button><button class="btn btn-sm btn-outline" onclick="fcNav(1)" '+(fcIndex===fcData.length-1?'disabled':'')+'>→</button></div>'}
+function fcNav(d){fcIndex=Math.max(0,Math.min(fcData.length-1,fcIndex+d));showFlashcard()}
+
+// ═══ GLOSSARY ═══
+function parseGlossary(raw){try{return JSON.parse(raw.replace(/```json|```/g,'').trim())}catch{return[]}}
+function renderGlossary(items){document.getElementById('glossaryContainer').style.display='block';document.getElementById('glossaryContainer').innerHTML='<div style="display:flex;flex-direction:column;gap:6px">'+items.map(i=>'<div style="background:var(--bg);padding:10px;border-radius:8px"><strong>'+i.term+'</strong>: '+i.def+'</div>').join('')+'</div>'}
+
+// ═══ FEEDBACK ═══
+async function sendQuickFeedback(useful){try{await db.collection('feedback').add({userId:auth.currentUser?.uid||'anonymous',tool:lastOutputTitle,rating:useful?5:1,message:'Feedback rapido',date:firebase.firestore.FieldValue.serverTimestamp()});showToast('Grazie! 🙏')}catch(e){}}
+
+// ═══ SAVE ═══
+let selectedMateria='';
+function openSaveModal(){document.getElementById('saveModal').classList.add('open')}
+function closeSaveModal(){document.getElementById('saveModal').classList.remove('open')}
+function selectMateria(btn,m){document.querySelectorAll('#saveModal .chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedMateria=m}
+async function confirmSave(){const u=auth.currentUser;if(!u)return;try{await db.collection('lessons').add({title:document.getElementById('saveTitle').value||'Lezione',materia:selectedMateria||'Altro',content:lastRawOutput,toolUsed:lastOutputTitle,date:firebase.firestore.FieldValue.serverTimestamp(),userId:u.uid});closeSaveModal();showToast('Salvato! ☁️')}catch(e){showToast('Errore','err')}}
+
+// ═══ ARCHIVE ═══
+let activeMateria='Tutte';
+async function renderArchive(){
+  const u=auth.currentUser;if(!u)return;
+  try{
+    const snap=await db.collection('lessons').where('userId','==',u.uid).orderBy('date','desc').get();
+    const archive=snap.docs.map(d=>({id:d.id,...d.data()}));
+    document.getElementById('materiaFilter').innerHTML=['Tutte',...new Set(archive.map(l=>l.materia))].map(m=>`<button class="chip ${m===activeMateria?'active':''}" onclick="filterMateria('${m}')">${m}</button>`).join('');
+    if(!archive.length){document.getElementById('archiveContent').innerHTML='<p style="text-align:center;padding:40px;color:var(--muted)">Nessuna lezione salvata</p>';return}
+    const filtered=activeMateria==='Tutte'?archive:archive.filter(l=>l.materia===activeMateria);
+    document.getElementById('archiveContent').innerHTML=filtered.map(l=>`<div class="lesson-item" onclick="openLesson('${l.id}')"><h4>${l.title}</h4><p>${(l.content||'').slice(0,120)}</p><div class="lesson-meta"><span>${l.toolUsed||''}</span><span>${l.date?new Date(l.date.toDate()).toLocaleDateString('it-IT'):''}</span></div></div>`).join('');
+  }catch(e){document.getElementById('archiveContent').innerHTML='<p style="color:var(--red)">Errore: '+e.message+'</p>'}
+}
+function filterMateria(m){activeMateria=m;renderArchive()}
+async function openLesson(id){const d=await db.collection('lessons').doc(id).get();if(!d.exists)return;const l=d.data();document.getElementById('archiveContent').style.display='none';document.getElementById('lessonDetail').style.display='block';document.getElementById('lessonDetail').innerHTML='<button class="btn btn-sm btn-outline" onclick="closeLesson()" style="margin-bottom:12px">← Indietro</button><h3>'+l.title+'</h3><p style="font-size:.75rem;color:var(--muted);margin:4px 0 12px">'+l.materia+' · '+(l.date?new Date(l.date.toDate()).toLocaleDateString('it-IT'):'')+'</p><div class="output-body">'+formatOutput(l.content||'')+'</div>'}
+function closeLesson(){document.getElementById('archiveContent').style.display='block';document.getElementById('lessonDetail').style.display='none'}
+async function clearArchive(){if(!confirm('Eliminare tutto?'))return;const s=await db.collection('lessons').where('userId','==',auth.currentUser.uid).get();const b=db.batch();s.docs.forEach(d=>b.delete(d.ref));await b.commit();renderArchive()}
+async function migrateLocalToCloud(){const u=auth.currentUser;if(!u)return;const l=JSON.parse(localStorage.getItem('edunity_archive')||'[]');if(!l.length)return;const b=db.batch();l.forEach(x=>b.set(db.collection('lessons').doc(),{...x,userId:u.uid,date:firebase.firestore.FieldValue.serverTimestamp()}));await b.commit();showToast('Migrato!')}
+
+// ═══ PROFILE ═══
+function loadProfile(){const p=JSON.parse(localStorage.getItem('edunity_profile')||'{}');if(p.name)document.getElementById('profileName').value=p.name;if(p.type)document.getElementById('profileType').value=p.type}
+function saveProfile(){localStorage.setItem('edunity_profile',JSON.stringify({name:document.getElementById('profileName').value,type:document.getElementById('profileType').value}))}
+async function renderProfile(){const u=auth.currentUser;if(!u)return;document.getElementById('profileNameDisplay').textContent=document.getElementById('profileName').value||u.displayName||'Studente';document.getElementById('avatarEl').textContent=(document.getElementById('profileName').value||u.displayName||'S')[0].toUpperCase();document.getElementById('accountEmail').textContent=u.email;try{const s=await db.collection('lessons').where('userId','==',u.uid).get();document.getElementById('statLezioni').textContent=s.size;document.getElementById('statMaterie').textContent=new Set(s.docs.map(d=>d.data().materia)).size}catch(e){}}
+function incrementAICount(){localStorage.setItem('edunity_ai_count',parseInt(localStorage.getItem('edunity_ai_count')||'0')+1)}
+
+// ═══ RAGIONA ═══
+let ragionaHistory=[],ragionaScore=0,ragionaActive=false;
+async function startRagiona(){const t=getActiveText();if(!t||!apiKey)return;ragionaHistory=[{role:'system',content:'Tutor socratico. Testo:"""'+t+'""". Fai UNA domanda. JSON:{"feedback":"ok"|"partial","comment":"...","next_question":"...","is_last":false}'}];ragionaScore=0;ragionaActive=true;document.getElementById('outputCard').classList.add('visible');document.getElementById('ragionaContainer').style.display='block';const fq=await callGroqRagiona('');renderRagionaChat(fq?.next_question||'Cosa ricordi?')}
+async function sendRagiona(){const a=document.getElementById('ragionaInput').value.trim();if(!a)return;document.getElementById('ragionaInput').value='';addRagionaMsg('user',a);ragionaHistory.push({role:'user',content:a});try{const raw=await callGroqRagiona(a),p=JSON.parse(raw.replace(/```json|```/g,'').trim());ragionaScore=Math.min(100,ragionaScore+(p.score_delta||0));if(p.comment){const fb=document.createElement('div');fb.style.cssText='font-size:.75rem;padding:6px 10px;border-radius:8px;margin-top:6px;background:'+(p.feedback==='ok'?'var(--green-light)':'#fef3c7');fb.textContent=(p.feedback==='ok'?'✅':'⚡')+' '+p.comment;document.getElementById('ragionaMessages').appendChild(fb)}if(p.is_last){ragionaActive=false;document.getElementById('ragionaMessages').innerHTML+='<div style="text-align:center;padding:16px;font-size:1.5rem;font-weight:700;color:var(--accent)">'+ragionaScore+'%</div>'}else{addRagionaMsg('ai',p.next_question);ragionaHistory.push({role:'assistant',content:JSON.stringify(p)})}}catch(e){addRagionaMsg('ai','Ripeti?')}}
+async function callGroqRagiona(msg){const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:300,temperature:0.5,messages:[...ragionaHistory,{role:'user',content:msg||'Inizia'}]})});if(!r.ok)throw new Error('Errore');const d=await r.json();return d.choices?.[0]?.message?.content||''}
+function addRagionaMsg(role,text){const rc=document.getElementById('ragionaMessages'),d=document.createElement('div');d.style.cssText='padding:8px 12px;border-radius:10px;margin-bottom:6px;max-width:85%;'+(role==='ai'?'background:var(--bg);align-self:flex-start':'background:var(--accent-light);align-self:flex-end;color:var(--accent)');d.textContent=text;rc.appendChild(d);rc.scrollTop=rc.scrollHeight}
+function renderRagionaChat(q){document.getElementById('ragionaContainer').innerHTML='<div class="ragiona-messages" id="ragionaMessages" style="max-height:300px;overflow-y:auto;margin-bottom:10px"></div><div style="display:flex;gap:8px"><input class="auth-input" id="ragionaInput" placeholder="Risposta..." style="flex:1" onkeydown="if(event.key===\'Enter\')sendRagiona()"><button class="btn btn-primary btn-sm" onclick="sendRagiona()">Invia</button></div>';document.getElementById('ragionaMessages').style.display='flex';document.getElementById('ragionaMessages').style.flexDirection='column';addRagionaMsg('ai',q)}
+
+// ═══ TOAST ═══
+let tt=null;function showToast(m,t){const el=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;el.className='toast show';el.style.background=t==='err'?'var(--red)':'#1a1a1a';clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2500)}
+</script>
+</body>
+</html>
