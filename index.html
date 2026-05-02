@@ -234,13 +234,68 @@ header{position:sticky;top:0;z-index:200;background:rgba(245,243,238,.92);backdr
 .settings-label{font-size:.82rem;font-weight:600}
 .settings-sub{font-size:.7rem;color:var(--muted)}
 
-/* PRIVACY PAGE */
-.privacy-content{max-width:700px;margin:0 auto;line-height:1.8}
-.privacy-content h2{font-family:'Fraunces',serif;font-size:1.6rem;margin:28px 0 12px}
-.privacy-content h3{font-family:'Fraunces',serif;font-size:1.1rem;margin:20px 0 8px;color:var(--accent)}
-.privacy-content p,.privacy-content ul{margin-bottom:12px;font-size:.9rem;color:var(--text2)}
-.privacy-content ul{padding-left:20px}
-.privacy-content li{margin-bottom:4px}
+<!-- ═══ PRIVACY PAGE ═══ -->
+<div class="page" id="page-privacy">
+  <div class="privacy-content">
+    <button class="btn btn-ghost" onclick="goPage('home')" style="margin-bottom:20px">← Torna alla home</button>
+    <h2>🔒 Privacy Policy di EdUnity</h2>
+    <p><strong>Ultimo aggiornamento:</strong> 2 Maggio 2026</p>
+    <p>Questa Privacy Policy descrive come EdUnity raccoglie, utilizza e protegge i dati personali degli utenti.</p>
+    
+    <h3>1. Titolare del trattamento</h3>
+    <p>Il Titolare del trattamento dei dati è EdUnity, contattabile all'indirizzo email: <strong>edunityedu@gmail.com</strong></p>
+    
+    <h3>2. Dati raccolti</h3>
+    <ul>
+      <li><strong>Dati account:</strong> Email, nome (fornito dall'utente o da Google), foto profilo (se login con Google).</li>
+      <li><strong>Contenuti generati:</strong> Trascrizioni audio, riassunti, mappe concettuali, flashcard e altri output degli strumenti AI.</li>
+      <li><strong>Feedback:</strong> Valutazioni e commenti inviati volontariamente.</li>
+      <li><strong>Dati tecnici:</strong> Stato online/offline (solo per mostrare il contatore utenti attivi).</li>
+    </ul>
+    
+    <h3>3. Finalità del trattamento</h3>
+    <ul>
+      <li>Fornire e migliorare i servizi di EdUnity.</li>
+      <li>Sincronizzare le lezioni tra dispositivi (archivio cloud).</li>
+      <li>Mostrare il numero di utenti online in tempo reale.</li>
+      <li>I dati <strong>NON vengono venduti</strong>, condivisi con terze parti, né utilizzati per pubblicità.</li>
+    </ul>
+    
+    <h3>4. Base giuridica</h3>
+    <p>Il trattamento si basa sul consenso dell'utente (accettazione cookie e registrazione) e sul legittimo interesse per il funzionamento del servizio.</p>
+    
+    <h3>5. Servizi di terze parti</h3>
+    <p>EdUnity utilizza <strong>Firebase</strong> (Google LLC) per autenticazione, database e hosting. I dati sono archiviati su server Firebase in Europa. Per maggiori informazioni, consulta la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy di Firebase</a>.</p>
+    
+    <h3>6. Cookie</h3>
+    <p>EdUnity utilizza esclusivamente cookie tecnici essenziali per il funzionamento (autenticazione Firebase). Non vengono utilizzati cookie di profilazione o tracciamento pubblicitario.</p>
+    
+    <h3>7. Conservazione dei dati</h3>
+    <p>I dati sono conservati finché l'account rimane attivo. L'utente può cancellare i propri dati in qualsiasi momento dalla sezione Profilo > Cancella archivio, o contattando il supporto.</p>
+    
+    <h3>8. Diritti dell'utente (GDPR)</h3>
+    <p>Ai sensi del Regolamento UE 2016/679 (GDPR), l'utente ha diritto a:</p>
+    <ul>
+      <li><strong>Accesso</strong> ai propri dati (visibili nel Profilo e Archivio).</li>
+      <li><strong>Rettifica</strong> dei dati personali (modificabili nel Profilo).</li>
+      <li><strong>Cancellazione</strong> dei dati (funzione disponibile nel Profilo).</li>
+      <li><strong>Portabilità</strong> dei dati (esportazione JSON disponibile).</li>
+      <li><strong>Revoca del consenso</strong> in qualsiasi momento.</li>
+    </ul>
+    <p>Per esercitare questi diritti, contattare: <strong>edunityedu@gmail.com</strong></p>
+    
+    <h3>9. Sicurezza</h3>
+    <p>EdUnity adotta misure tecniche e organizzative per proteggere i dati da accessi non autorizzati, alterazione, divulgazione o distruzione.</p>
+    
+    <h3>10. Modifiche alla Privacy Policy</h3>
+    <p>Eventuali modifiche saranno pubblicate su questa pagina. Si consiglia di consultare periodicamente la Privacy Policy.</p>
+    
+    <h3>11. Contatti</h3>
+    <p>Per domande, chiarimenti o richieste relative alla privacy, contattare: <strong>edunityedu@gmail.com</strong></p>
+    
+    <p style="margin-top:30px;font-size:.8rem;color:var(--muted2);text-align:center">© 2026 EdUnity — Tutti i diritti riservati</p>
+  </div>
+</div>
 
 /* FOOTER */
 footer{text-align:center;padding:16px;color:var(--muted2);font-size:.68rem;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
