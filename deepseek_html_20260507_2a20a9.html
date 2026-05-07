@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#2563eb">
+  <title>EdUnity — Studia Meglio con l'AI</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<style>
+:root{--bg:#f8f7f4;--surface:#fff;--border:#e8e5e0;--accent:#2563eb;--green:#16a34a;--red:#dc2626;--text:#1a1a1a;--text2:#555;--muted:#999;--radius:12px}
+[data-theme="dark"]{--bg:#0f0f0f;--surface:#1a1a1a;--border:#2a2a2a;--text:#f0f0f0;--text2:#aaa;--muted:#666}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;background:var(--bg);color:var(--text);min-height:100dvh;transition:background .2s}
+input,select,textarea{font-size:16px!important}
+
+/* Splash */
+#splash{position:fixed;inset:0;z-index:9999;background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
+#splash.hide{opacity:0;pointer-events:none}
+.splash-logo{width:80px;height:80px;border-radius:20px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:800;color:#fff}
+.splash-spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Auth */
+.auth-wrapper{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+.auth-card{width:100%;max-width:380px;background:var(--surface);border-radius:16px;padding:28px 24px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.auth-card h2{font-size:1.4rem;text-align:center}
+.auth-tabs{display:flex;margin-bottom:20px;background:var(--bg);border-radius:10px;padding:3px}
+.auth-tab{flex:1;padding:10px;border:none;background:none;font-weight:500;color:var(--muted);cursor:pointer;border-radius:8px}
+.auth-tab.active{background:var(--accent);color:#fff}
+.auth-input{width:100%;padding:12px 14px;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);outline:none}
+.auth-btn{width:100%;padding:13px;border:none;border-radius:10px;font-weight:600;cursor:pointer;margin-top:6px}
+.auth-btn-primary{background:var(--accent);color:#fff}
+.auth-btn-google{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.auth-error{color:var(--red);font-size:.75rem;display:none}
+
+/* Header & Nav */
+header{position:sticky;top:0;z-index:100;background:rgba(248,247,244,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer}
+.logo-icon{width:28px;height:28px;border-radius:7px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center}
+.dropdown{position:relative}
+.dropdown-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--surface);cursor:pointer}
+.dropdown-content{display:none;position:absolute;right:0;top:42px;background:var(--surface);border:1px solid var(--border);border-radius:12px;min-width:200px;z-index:500;padding:6px 0}
+.dropdown-content.show{display:block}
+.dropdown-content a{display:block;padding:10px 16px;color:var(--text);text-decoration:none;font-size:.82rem;cursor:pointer}
+.dropdown-content a:hover{background:var(--bg)}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;padding:6px 8px calc(10px + env(safe-area-inset-bottom,0px))}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:none;background:none;cursor:pointer;color:var(--muted);font-size:.65rem}
+.nav-item.active{color:var(--accent)}
+.nav-icon{font-size:1.3rem}
+
+.page{display:none;padding:16px 16px calc(100px + env(safe-area-inset-bottom,0px));max-width:800px;margin:0 auto}
+.page.active{display:block}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.card-title{font-weight:600;margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-weight:600;border:none;cursor:pointer}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-outline{background:var(--surface);border:1px solid var(--border)}
+.btn-sm{padding:6px 12px;font-size:.72rem}
+.btn-danger{background:#fef2f2;color:var(--red)}
+
+.tools-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px}
+.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer}
+.tool-card.selected{border-color:var(--accent);background:#eff6ff}
+.tool-icon{font-size:1.1rem}
+.tool-label{font-size:.75rem;font-weight:600}
+
+.transcript-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;min-height:90px;max-height:180px;overflow-y:auto;padding:12px;font-size:.82rem}
+.output-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:16px;display:none}
+.output-card.visible{display:block}
+.output-body{background:var(--bg);border-radius:10px;padding:14px;font-size:.85rem;max-height:55vh;overflow-y:auto}
+
+/* Chatbot Riccio */
+.chatbot-bubble{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom,0px));right:20px;z-index:450;width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#8B6914,#D4A017);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 24px rgba(139,105,20,0.4);border:2px solid #FFD700}
+.chatbot-bubble img{width:52px;height:52px;border-radius:50%;object-fit:cover}
+.chatbot-window{position:fixed;bottom:calc(100px + env(safe-area-inset-bottom,0px));right:20px;z-index:450;width:min(360px,90vw);max-height:560px;background:var(--surface);border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,0.2);display:none;flex-direction:column;overflow:hidden}
+.chatbot-window.open{display:flex}
+.chatbot-header{background:linear-gradient(135deg,#8B6914,#D4A017);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.chatbot-header-left{display:flex;align-items:center;gap:10px}
+.chatbot-header-left img{width:36px;height:36px;border-radius:50%}
+.chatbot-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;max-height:360px;background:var(--bg)}
+.chatbot-msg{padding:10px 14px;border-radius:18px;font-size:.82rem;max-width:85%}
+.chatbot-msg.ai{background:var(--surface);border:1px solid var(--border);align-self:flex-start}
+.chatbot-msg.user{background:var(--accent);color:#fff;align-self:flex-end}
+.chatbot-msg.ai::before{content:"🦔 "}
+.chatbot-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}
+.chatbot-input-row input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:24px;background:var(--bg);color:var(--text);outline:none}
+.chatbot-input-row button{width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer}
+
+/* Gruppi */
+.group-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.group-card-header{display:flex;align-items:center;gap:12px}
+.group-avatar{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--green));display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.group-info{flex:1}
+.group-name{font-weight:700}
+.group-code{font-family:monospace;font-size:.7rem;background:var(--bg);padding:2px 8px;border-radius:6px;display:inline-block;margin-top:4px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);width:100%;max-width:500px;border-radius:16px;padding:24px}
+
+.toast{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom,0px));left:20px;right:20px;z-index:600;background:#1a1a1a;color:#fff;padding:12px 16px;border-radius:10px;text-align:center;opacity:0;transform:translateY(20px);transition:all .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-logo">📚</div>
+  <div style="font-size:1.6rem;font-weight:800;color:#fff">EdUnity</div>
+  <div class="splash-spinner"></div>
+</div>
+
+<!-- AUTH -->
+<div class="auth-wrapper" id="authPage" style="display:none">
+  <div class="auth-card">
+    <h2>EdUnity</h2>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="showTab('login')">Accedi</button>
+      <button class="auth-tab" id="tabRegister" onclick="showTab('register')">Registrati</button>
+    </div>
+    <div id="formLogin">
+      <input type="email" class="auth-input" id="loginEmail" placeholder="Email">
+      <input type="password" class="auth-input" id="loginPassword" placeholder="Password">
+      <div class="auth-error" id="loginError"></div>
+      <button class="auth-btn auth-btn-primary" onclick="doLogin()">Accedi</button>
+      <button class="auth-btn auth-btn-google" onclick="doGoogleLogin()">Accedi con Google</button>
+    </div>
+    <div id="formRegister" style="display:none">
+      <input type="text" class="auth-input" id="regName" placeholder="Nome">
+      <input type="email" class="auth-input" id="regEmail" placeholder="Email">
+      <input type="password" class="auth-input" id="regPassword" placeholder="Password (min. 6)">
+      <div class="auth-error" id="regError"></div>
+      <button class="auth-btn auth-btn-primary" onclick="doRegister()">Crea Account</button>
+      <button class="auth-btn auth-btn-google" onclick="doGoogleLogin()">Registrati con Google</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header id="mainHeader" style="display:none">
+  <div class="logo" onclick="goPage('home')">
+    <div class="logo-icon">E</div>
+    <span>EdUnity</span>
+  </div>
+  <div class="dropdown">
+    <button class="dropdown-btn" onclick="toggleDropdown()">☰</button>
+    <div class="dropdown-content" id="dropdownContent">
+      <a onclick="toggleDarkMode()">🌙 Dark Mode</a>
+      <a onclick="goPage('timer')">🍅 Pomodoro</a>
+      <a onclick="doLogout()" style="color:var(--red)">🚪 Logout</a>
+    </div>
+  </div>
+</header>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottomNav" style="display:none">
+  <button class="nav-item active" onclick="goPage('home')"><span class="nav-icon">📚</span>Studio</button>
+  <button class="nav-item" onclick="goPage('archive')"><span class="nav-icon">📂</span>Archivio</button>
+  <button class="nav-item" onclick="goPage('timer')"><span class="nav-icon">🍅</span>Timer</button>
+  <button class="nav-item" onclick="goPage('profile')"><span class="nav-icon">👤</span>Profilo</button>
+</nav>
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+  <div class="card">
+    <div class="card-title">🎙 Registra</div>
+    <div class="recorder-actions">
+      <button class="btn btn-primary" id="btnRecord" onclick="toggleRecord()">⏺ Registra</button>
+      <button class="btn btn-outline" onclick="stopRecord()" disabled id="btnStop">⏹ Stop</button>
+    </div>
+    <div class="transcript-box" id="transcriptBox">La trascrizione apparirà qui...</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🤖 Strumenti AI</div>
+    <div class="tools-grid">
+      <div class="tool-card" onclick="selectTool('summary')"><div class="tool-icon">📝</div><div class="tool-label">Riassunto</div></div>
+      <div class="tool-card" onclick="selectTool('flashcard')"><div class="tool-icon">🃏</div><div class="tool-label">Flashcard</div></div>
+      <div class="tool-card" onclick="selectTool('quiz')"><div class="tool-icon">❓</div><div class="tool-label">Quiz</div></div>
+      <div class="tool-card" onclick="selectTool('simplify')"><div class="tool-icon">✨</div><div class="tool-label">Semplifica</div></div>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="runSelectedTool()">🚀 Esegui</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📎 Inserisci testo</div>
+    <textarea id="manualText" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px;min-height:80px" placeholder="Incolla appunti..."></textarea>
+    <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="useManualText()">Usa testo</button>
+  </div>
+
+  <div class="output-card" id="outputCard">
+    <div class="output-header"><strong id="outputTitle">Risultato</strong><button class="btn btn-sm btn-outline" onclick="closeOutput()">✕</button></div>
+    <div class="output-body" id="outputBody"></div>
+    <div class="output-actions" style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-sm btn-primary" onclick="openSaveModal()">💾 Salva</button>
+      <button class="btn btn-sm btn-outline" onclick="copyOutput()">📋 Copia</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHIVE PAGE -->
+<div class="page" id="page-archive">
+  <h2 style="font-size:1.2rem;margin-bottom:12px">📂 Archivio</h2>
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <button class="btn btn-sm btn-primary" id="archiveTabMy" onclick="switchArchiveTab('my')">Le mie lezioni</button>
+    <button class="btn btn-sm btn-outline" id="archiveTabGroups" onclick="switchArchiveTab('groups')">👥 Gruppi</button>
+  </div>
+  <div id="archiveMy">
+    <div id="archiveContent"></div>
+  </div>
+  <div id="archiveGroups" style="display:none">
+    <button class="btn btn-outline btn-sm" style="margin-bottom:12px" onclick="joinGroup()">🔗 Unisciti con codice</button>
+    <button class="btn btn-primary btn-sm" style="margin-bottom:12px" onclick="openCreateGroupModal()">+ Crea gruppo</button>
+    <div id="groupsList"></div>
+  </div>
+</div>
+
+<!-- TIMER PAGE -->
+<div class="page" id="page-timer">
+  <h2 style="font-size:1.2rem;margin-bottom:16px">🍅 Pomodoro</h2>
+  <div class="card">
+    <div class="pomodoro-display" style="font-size:3rem;text-align:center;font-weight:700" id="pomodoroDisplay">25:00</div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+      <button class="btn btn-primary" onclick="pomodoroStart()">▶ Inizia</button>
+      <button class="btn btn-outline" onclick="pomodoroReset()">↺ Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE PAGE -->
+<div class="page" id="page-profile">
+  <div class="profile-avatar" style="width:80px;height:80px;border-radius:50%;background:var(--accent);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:2rem">👤</div>
+  <div class="profile-name" style="text-align:center;font-weight:700" id="profileNameDisplay">Studente</div>
+  <div class="stats-row" style="display:flex;gap:12px;justify-content:center;margin:16px 0">
+    <div class="stat-item" style="text-align:center"><div class="stat-num" id="statLezioni">0</div><div class="stat-label">Lezioni</div></div>
+  </div>
+  <button class="btn btn-danger btn-block" onclick="clearArchive()">🗑 Cancella tutto</button>
+</div>
+
+<!-- MODAL SAVE -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <h3>💾 Salva lezione</h3>
+    <input class="auth-input" id="saveTitle" placeholder="Titolo">
+    <input class="auth-input" id="saveMateria" placeholder="Materia (es. Matematica)">
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-outline" onclick="closeSaveModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="confirmSave()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREATE GROUP -->
+<div class="modal-overlay" id="createGroupModal">
+  <div class="modal">
+    <h3>👥 Crea gruppo</h3>
+    <input class="auth-input" id="groupNameInput" placeholder="Nome gruppo">
+    <div style="background:var(--bg);border-radius:10px;padding:14px;margin:12px 0;text-align:center">
+      <div style="font-size:.7rem;color:var(--muted)">Codice gruppo</div>
+      <div class="group-code" id="groupCodePreview" style="font-size:1.2rem">----</div>
+      <button class="btn btn-sm btn-outline" style="margin-top:8px" onclick="generateGroupCode()">🔄 Genera codice</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" onclick="closeCreateGroupModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="confirmCreateGroup()">Crea</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHATBOT RICCIO -->
+<div class="chatbot-bubble" id="chatbotBubble" onclick="toggleChatbot()">
+  <img src="eddy-avatar.png" alt="Eddy" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\'font-size:2rem\'>🦔</span>'">
+</div>
+<div class="chatbot-window" id="chatbotWindow">
+  <div class="chatbot-header">
+    <div class="chatbot-header-left">
+      <img src="eddy-avatar.png" alt="Eddy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%23D4A017\'/%3E%3Ctext x=\'50\' y=\'67\' text-anchor=\'middle\' font-size=\'40\' fill=\'white\'%3E🦔%3C/text%3E%3C/svg%3E'">
+      <span>Eddy 🦔</span>
+    </div>
+    <button class="chatbot-close" onclick="toggleChatbot()" style="background:none;border:none;color:#fff;font-size:1.2rem">✕</button>
+  </div>
+  <div class="chatbot-messages" id="chatbotMessages">
+    <div class="chatbot-msg ai">Ciao! Sono Eddy 🦔, il tuo assistente. Come posso aiutarti a studiare?</div>
+  </div>
+  <div class="chatbot-input-row">
+    <input id="chatbotInput" placeholder="Chiedimi qualcosa..." onkeypress="if(event.key==='Enter')sendChatbotMsg()">
+    <button onclick="sendChatbotMsg()">➤</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+// ========== CONFIG ==========
+const API_URL = 'https://late-forest-235c.fedefas-210.workers.dev';
+firebase.initializeApp({
+  apiKey: "AIzaSyDAzftdj79S55mmQKALxVwF6CF0OcO0J8Y",
+  authDomain: "edunity-4ce21.firebaseapp.com",
+  projectId: "edunity-4ce21",
+  storageBucket: "edunity-4ce21.firebasestorage.app",
+  databaseURL: "https://edunity-4ce21-default-rtdb.europe-west1.firebasedatabase.app"
+});
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+let currentUser = null;
+let transcript = '';
+let selectedTool = '';
+let lastOutput = '';
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+
+// ========== UTILS ==========
+function showToast(msg, isErr = false) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  toast.style.background = isErr ? 'var(--red)' : '#1a1a1a';
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+function hideSplash() {
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => document.getElementById('splash').style.display = 'none', 400);
+  }, 800);
+}
+
+function toggleDarkMode() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+function toggleDropdown() {
+  document.getElementById('dropdownContent').classList.toggle('show');
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.dropdown')) document.getElementById('dropdownContent').classList.remove('show');
+});
+
+// ========== AUTH ==========
+function showTab(tab) {
+  document.getElementById('formLogin').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('formRegister').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd = document.getElementById('loginPassword').value;
+  try {
+    await auth.signInWithEmailAndPassword(email, pwd);
+    showToast('Benvenuto! 🎉');
+  } catch (err) {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginError').textContent = err.message;
+  }
+}
+
+async function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pwd = document.getElementById('regPassword').value;
+  if (pwd.length < 6) {
+    document.getElementById('regError').style.display = 'block';
+    document.getElementById('regError').textContent = 'Password troppo corta';
+    return;
+  }
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, pwd);
+    await cred.user.updateProfile({ displayName: name });
+    showToast('Account creato! 🎉');
+  } catch (err) {
+    document.getElementById('regError').style.display = 'block';
+    document.getElementById('regError').textContent = err.message;
+  }
+}
+
+async function doGoogleLogin() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    await auth.signInWithPopup(provider);
+    showToast('Benvenuto! 🎉');
+  } catch (err) {
+    showToast('Errore login Google', true);
+  }
+}
+
+async function doLogout() {
+  await auth.signOut();
+  showToast('Logout effettuato');
+}
+
+// ========== NAVIGATION ==========
+function goPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${pageId}`).classList.add('active');
+  
+  document.querySelectorAll('.nav-item').forEach((item, idx) => {
+    const pages = ['home', 'archive', 'timer', 'profile'];
+    item.classList.toggle('active', pages[idx] === pageId);
+  });
+  
+  if (pageId === 'archive') renderArchive();
+  if (pageId === 'profile') renderProfile();
+}
+
+// ========== RECORDER ==========
+async function toggleRecord() {
+  if (isRecording) {
+    pauseRecord();
+  } else {
+    startRecord();
+  }
+}
+
+async function startRecord() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+    
+    mediaRecorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      await transcribeAudio();
+    };
+    
+    mediaRecorder.start();
+    isRecording = true;
+    document.getElementById('btnRecord').textContent = '⏸ Pausa';
+    document.getElementById('btnStop').disabled = false;
+    showToast('Registrazione in corso...');
+  } catch (err) {
+    showToast('Microfono non disponibile', true);
+  }
+}
+
+function pauseRecord() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.pause();
+    isRecording = false;
+    document.getElementById('btnRecord').textContent = '▶ Riprendi';
+    showToast('Registrazione in pausa');
+  }
+}
+
+function stopRecord() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    isRecording = false;
+    document.getElementById('btnRecord').textContent = '⏺ Registra';
+    document.getElementById('btnStop').disabled = true;
+    showToast('Elaborazione...');
+  }
+}
+
+async function transcribeAudio() {
+  if (!audioChunks.length) return;
+  const blob = new Blob(audioChunks, { type: 'audio/webm' });
+  const formData = new FormData();
+  formData.append('file', blob, 'audio.webm');
+  formData.append('model', 'whisper-large-v3-turbo');
+  formData.append('language', 'it');
+  
+  try {
+    const res = await fetch(`${API_URL}/transcribe`, { method: 'POST', body: formData });
+    const text = await res.text();
+    transcript = text;
+    document.getElementById('transcriptBox').innerHTML = transcript || 'Nessun testo riconosciuto';
+    showToast('Trascrizione completata!');
+  } catch (err) {
+    showToast('Errore trascrizione', true);
+  }
+}
+
+function useManualText() {
+  transcript = document.getElementById('manualText').value;
+  document.getElementById('transcriptBox').innerHTML = transcript || 'Testo caricato';
+  showToast('Testo caricato!');
+}
+
+// ========== AI TOOLS ==========
+function selectTool(tool) {
+  selectedTool = tool;
+  document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+
+async function runSelectedTool() {
+  if (!selectedTool) {
+    showToast('Seleziona uno strumento!', true);
+    return;
+  }
+  if (!transcript) {
+    showToast('Nessun testo da elaborare!', true);
+    return;
+  }
+  
+  showToast('Elaborazione in corso...');
+  const outputDiv = document.getElementById('outputBody');
+  outputDiv.innerHTML = '<div style="text-align:center;padding:20px">⏳ Elaborazione...</div>';
+  document.getElementById('outputCard').classList.add('visible');
+  
+  let prompt = '';
+  switch(selectedTool) {
+    case 'summary':
+      prompt = `Fai un riassunto chiaro e ben strutturato di questo testo:\n\n${transcript}`;
+      document.getElementById('outputTitle').textContent = '📝 Riassunto';
+      break;
+    case 'flashcard':
+      prompt = `Crea 5 flashcard (domanda/risposta) basate su questo testo. Formato: DOMANDA: ... RISPOSTA: ...\n\n${transcript}`;
+      document.getElementById('outputTitle').textContent = '🃏 Flashcard';
+      break;
+    case 'quiz':
+      prompt = `Crea 5 domande a risposta multipla (con 4 opzioni) su questo testo. Fornisci anche le risposte corrette.\n\n${transcript}`;
+      document.getElementById('outputTitle').textContent = '❓ Quiz';
+      break;
+    case 'simplify':
+      prompt = `Riscrivi questo testo in modo più semplice e chiaro, adatto per studenti DSA:\n\n${transcript}`;
+      document.getElementById('outputTitle').textContent = '✨ Versione Semplificata';
+      break;
+  }
+  
+  try {
+    const res = await fetch(`${API_URL}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 1500,
+        model: 'llama-3.3-70b-versatile'
+      })
+    });
+    const data = await res.json();
+    lastOutput = data.choices?.[0]?.message?.content || 'Errore generazione';
+    outputDiv.innerHTML = lastOutput.replace(/\n/g, '<br>');
+    showToast('✅ Elaborazione completata!');
+  } catch (err) {
+    outputDiv.innerHTML = '❌ Errore di connessione con l\'AI';
+    showToast('Errore AI', true);
+  }
+}
+
+function copyOutput() {
+  navigator.clipboard.writeText(lastOutput);
+  showToast('Copiato!');
+}
+
+function closeOutput() {
+  document.getElementById('outputCard').classList.remove('visible');
+}
+
+// ========== SAVE TO CLOUD ==========
+function openSaveModal() {
+  if (!lastOutput) {
+    showToast('Genera prima un contenuto!', true);
+    return;
+  }
+  document.getElementById('saveModal').classList.add('open');
+}
+
+function closeSaveModal() {
+  document.getElementById('saveModal').classList.remove('open');
+}
+
+async function confirmSave() {
+  const user = auth.currentUser;
+  if (!user) return;
+  const title = document.getElementById('saveTitle').value.trim() || 'Lezione senza titolo';
+  const materia = document.getElementById('saveMateria').value.trim() || 'Generale';
+  
+  try {
+    await db.collection('lessons').add({
+      title,
+      materia,
+      content: lastOutput,
+      toolUsed: selectedTool,
+      userId: user.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('✅ Salvato nel cloud!');
+    closeSaveModal();
+    renderArchive();
+  } catch (err) {
+    showToast('Errore salvataggio', true);
+  }
+}
+
+// ========== ARCHIVE ==========
+async function renderArchive() {
+  const user = auth.currentUser;
+  if (!user) return;
+  const snap = await db.collection('lessons').where('userId', '==', user.uid).orderBy('createdAt', 'desc').get();
+  const lessons = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  
+  const container = document.getElementById('archiveContent');
+  if (!lessons.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px"><div style="font-size:3rem">📭</div><p>Nessuna lezione salvata</p></div>';
+    return;
+  }
+  
+  container.innerHTML = lessons.map(l => `
+    <div class="card" style="cursor:pointer" onclick="viewLesson('${l.id}')">
+      <strong>${escapeHtml(l.title)}</strong>
+      <div style="font-size:.7rem;color:var(--muted);margin-top:4px">${l.materia || 'Generale'}</div>
+      <div style="font-size:.7rem;color:var(--muted)">${l.createdAt?.toDate().toLocaleDateString() || ''}</div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
+
+async function viewLesson(id) {
+  const doc = await db.collection('lessons').doc(id).get();
+  const lesson = doc.data();
+  lastOutput = lesson.content;
+  document.getElementById('outputBody').innerHTML = lesson.content.replace(/\n/g, '<br>');
+  document.getElementById('outputTitle').textContent = lesson.title;
+  document.getElementById('outputCard').classList.add('visible');
+  goPage('home');
+}
+
+async function clearArchive() {
+  if (!confirm('Eliminare tutte le lezioni?')) return;
+  const user = auth.currentUser;
+  const snap = await db.collection('lessons').where('userId', '==', user.uid).get();
+  const batch = db.batch();
+  snap.docs.forEach(d => batch.delete(d.ref));
+  await batch.commit();
+  showToast('Archivio cancellato');
+  renderArchive();
+}
+
+// ========== PROFILE ==========
+async function renderProfile() {
+  const user = auth.currentUser;
+  if (!user) return;
+  document.getElementById('profileNameDisplay').textContent = user.displayName || 'Studente';
+  const snap = await db.collection('lessons').where('userId', '==', user.uid).get();
+  document.getElementById('statLezioni').textContent = snap.size;
+}
+
+// ========== POMODORO ==========
+let pomodoroInterval = null;
+let pomodoroSeconds = 25 * 60;
+let isPomodoroRunning = false;
+
+function updatePomodoroDisplay() {
+  const mins = Math.floor(pomodoroSeconds / 60);
+  const secs = pomodoroSeconds % 60;
+  document.getElementById('pomodoroDisplay').textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function pomodoroStart() {
+  if (isPomodoroRunning) return;
+  isPomodoroRunning = true;
+  pomodoroInterval = setInterval(() => {
+    if (pomodoroSeconds <= 0) {
+      clearInterval(pomodoroInterval);
+      isPomodoroRunning = false;
+      showToast('🍅 Pomodoro completato!');
+      pomodoroSeconds = 25 * 60;
+      updatePomodoroDisplay();
+    } else {
+      pomodoroSeconds--;
+      updatePomodoroDisplay();
+    }
+  }, 1000);
+}
+
+function pomodoroReset() {
+  clearInterval(pomodoroInterval);
+  isPomodoroRunning = false;
+  pomodoroSeconds = 25 * 60;
+  updatePomodoroDisplay();
+}
+
+// ========== GRUPPI ==========
+let currentGroups = [];
+
+function switchArchiveTab(tab) {
+  const myDiv = document.getElementById('archiveMy');
+  const groupsDiv = document.getElementById('archiveGroups');
+  const tabMy = document.getElementById('archiveTabMy');
+  const tabGroups = document.getElementById('archiveTabGroups');
+  
+  if (tab === 'my') {
+    myDiv.style.display = 'block';
+    groupsDiv.style.display = 'none';
+    tabMy.className = 'btn btn-sm btn-primary';
+    tabGroups.className = 'btn btn-sm btn-outline';
+    renderArchive();
+  } else {
+    myDiv.style.display = 'none';
+    groupsDiv.style.display = 'block';
+    tabMy.className = 'btn btn-sm btn-outline';
+    tabGroups.className = 'btn btn-sm btn-primary';
+    loadGroups();
+  }
+}
+
+async function loadGroups() {
+  const user = auth.currentUser;
+  if (!user) return;
+  
+  const createdSnap = await db.collection('groups').where('createdBy', '==', user.uid).get();
+  const memberSnap = await db.collection('groupMembers').where('userId', '==', user.uid).get();
+  
+  const groupIds = new Set();
+  createdSnap.forEach(d => groupIds.add(d.id));
+  memberSnap.forEach(d => groupIds.add(d.data().groupId));
+  
+  const groups = [];
+  for (const gid of groupIds) {
+    const doc = await db.collection('groups').doc(gid).get();
+    if (doc.exists) groups.push({ id: doc.id, ...doc.data() });
+  }
+  currentGroups = groups;
+  renderGroupsList();
+}
+
+function renderGroupsList() {
+  const container = document.getElementById('groupsList');
+  if (!currentGroups.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px"><div style="font-size:3rem">👥</div><p>Nessun gruppo. Crealo o unisciti!</p></div>';
+    return;
+  }
+  container.innerHTML = currentGroups.map(g => `
+    <div class="group-card">
+      <div class="group-card-header">
+        <div class="group-avatar">👥</div>
+        <div class="group-info">
+          <div class="group-name">${escapeHtml(g.name)}</div>
+          <div class="group-code">Codice: ${g.code || 'N/D'}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openCreateGroupModal() {
+  document.getElementById('createGroupModal').classList.add('open');
+  generateGroupCode();
+}
+
+function closeCreateGroupModal() {
+  document.getElementById('createGroupModal').classList.remove('open');
+}
+
+function generateGroupCode() {
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  document.getElementById('groupCodePreview').textContent = code;
+  document.getElementById('groupCodePreview').dataset.code = code;
+}
+
+async function confirmCreateGroup() {
+  const name = document.getElementById('groupNameInput').value.trim();
+  const code = document.getElementById('groupCodePreview').dataset.code;
+  const user = auth.currentUser;
+  
+  if (!name) {
+    showToast('Inserisci un nome', true);
+    return;
+  }
+  
+  try {
+    const newGroup = {
+      name,
+      code,
+      createdBy: user.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      memberCount: 1
+    };
+    const docRef = await db.collection('groups').add(newGroup);
+    await db.collection('groupMembers').add({
+      groupId: docRef.id,
+      userId: user.uid,
+      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('✅ Gruppo creato!');
+    closeCreateGroupModal();
+    loadGroups();
+    switchArchiveTab('groups');
+  } catch (err) {
+    showToast('Errore: ' + err.message, true);
+  }
+}
+
+async function joinGroup() {
+  const code = prompt('Inserisci il codice del gruppo:');
+  if (!code) return;
+  
+  try {
+    const q = await db.collection('groups').where('code', '==', code.toUpperCase()).get();
+    if (q.empty) {
+      showToast('Codice non valido', true);
+      return;
+    }
+    const group = q.docs[0];
+    const userId = auth.currentUser.uid;
+    
+    const existing = await db.collection('groupMembers').where('groupId', '==', group.id).where('userId', '==', userId).get();
+    if (!existing.empty) {
+      showToast('Sei già in questo gruppo!');
+      return;
+    }
+    
+    await db.collection('groupMembers').add({
+      groupId: group.id,
+      userId: userId,
+      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('groups').doc(group.id).update({
+      memberCount: firebase.firestore.FieldValue.increment(1)
+    });
+    showToast('✅ Unito al gruppo!');
+    loadGroups();
+  } catch (err) {
+    showToast('Errore', true);
+  }
+}
+
+// ========== CHATBOT INTELLIGENTE ==========
+let chatbotHistory = [];
+
+function toggleChatbot() {
+  document.getElementById('chatbotWindow').classList.toggle('open');
+}
+
+async function sendChatbotMsg() {
+  const input = document.getElementById('chatbotInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  
+  input.value = '';
+  addChatbotMsg('user', msg);
+  chatbotHistory.push({ role: 'user', content: msg });
+  
+  const context = transcript ? `L'utente sta studiando: "${transcript.slice(0, 300)}". ` : '';
+  
+  try {
+    const res = await fetch(`${API_URL}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: `Sei Eddy 🦔, un assistente simpatico e intelligente per studenti. Rispondi in modo amichevole, breve (max 3 frasi). ${context}` },
+          ...chatbotHistory.slice(-6)
+        ],
+        max_tokens: 300,
+        model: 'llama-3.3-70b-versatile'
+      })
+    });
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || 'Non ho capito, riprova! 🦔';
+    addChatbotMsg('ai', reply);
+    chatbotHistory.push({ role: 'assistant', content: reply });
+  } catch (err) {
+    addChatbotMsg('ai', 'Ops, errore di rete! Riprova 🦔');
+  }
+}
+
+function addChatbotMsg(role, text) {
+  const container = document.getElementById('chatbotMessages');
+  const div = document.createElement('div');
+  div.className = `chatbot-msg ${role}`;
+  div.textContent = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ========== AUTH STATE ==========
+auth.onAuthStateChanged(async (user) => {
+  hideSplash();
+  if (user) {
+    currentUser = user;
+    document.getElementById('authPage').style.display = 'none';
+    document.getElementById('mainHeader').style.display = 'flex';
+    document.getElementById('bottomNav').style.display = 'flex';
+    document.getElementById('chatbotBubble').style.display = 'flex';
+    renderArchive();
+    renderProfile();
+  } else {
+    currentUser = null;
+    document.getElementById('authPage').style.display = 'flex';
+    document.getElementById('mainHeader').style.display = 'none';
+    document.getElementById('bottomNav').style.display = 'none';
+    document.getElementById('chatbotBubble').style.display = 'none';
+  }
+});
+
+// Inizializza PDF.js
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+// Recupera tema salvato
+if (localStorage.getItem('theme') === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+}
+</script>
+</body>
+</html>
