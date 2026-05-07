@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>EdUnity — Studia Meglio con l'AI | Riassunti, Flashcard, Quiz</title>
+  <style>
+    /* === STILE ASSISTENTE RICCIO === */
+    .chatbot-bubble {
+      position: fixed;
+      bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+      right: 20px;
+      z-index: 450;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8B6914, #D4A017);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(139, 105, 20, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+      touch-action: manipulation;
+      border: 2px solid #FFD700;
+    }
+    .chatbot-bubble:hover {
+      transform: scale(1.08);
+      box-shadow: 0 8px 28px rgba(139, 105, 20, 0.5);
+    }
+    .chatbot-bubble img {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .chatbot-bubble .bubble-emoji {
+      font-size: 2.5rem;
+      filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+    }
+    
+    .chatbot-window {
+      position: fixed;
+      bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+      right: 20px;
+      z-index: 450;
+      width: min(360px, 90vw);
+      max-height: 560px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUpChat 0.25s ease;
+    }
+    @keyframes slideUpChat {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .chatbot-window.open { display: flex; }
+    
+    .chatbot-header {
+      background: linear-gradient(135deg, #8B6914, #D4A017);
+      color: #fff;
+      padding: 14px 16px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    .chatbot-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chatbot-header-left img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #fff;
+      object-fit: cover;
+    }
+    .chatbot-header-left span {
+      font-size: 1rem;
+    }
+    .chatbot-close {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .chatbot-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 360px;
+      background: var(--bg);
+    }
+    .chatbot-msg {
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      max-width: 85%;
+      word-wrap: break-word;
+    }
+    .chatbot-msg.ai {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      align-self: flex-start;
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+    .chatbot-msg.user {
+      background: var(--accent);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .chatbot-msg.ai::before {
+      content: "🦔 ";
+      font-size: 1rem;
+    }
+    
+    .chatbot-input-row {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .chatbot-input-row input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      font-size: 0.85rem;
+      outline: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .chatbot-input-row button {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Thinking animation */
+    .chatbot-typing {
+      display: flex;
+      gap: 4px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      align-self: flex-start;
+      max-width: 60px;
+    }
+    .chatbot-typing span {
+      width: 8px;
+      height: 8px;
+      background: var(--muted);
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+    .chatbot-typing span:nth-child(2) { animation-delay: 0.2s; }
+    .chatbot-typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-8px); opacity: 1; }
+    }
+    
+    /* Gruppi fix */
+    .group-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .group-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .group-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--green));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .group-info {
+      flex: 1;
+    }
+    .group-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    .group-code {
+      font-family: monospace;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      background: var(--bg);
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+    .group-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .group-lessons-preview {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+  </style>
+  <!-- ... mantieni gli altri stili esistenti ... -->
+</head>
+<body>
+
+<!-- ... SPLASH, AUTH, HEADER, BOTTOM NAV ... (mantieni invariato) ... -->
+
+<!-- ═══ NUOVO CHATBOT CON RICCIO ═══ -->
+<div class="chatbot-bubble" id="chatbotBubble" onclick="toggleChatbot()">
+  <img src="eddy-avatar.png" alt="Eddy il riccio" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=\'bubble-emoji\'>🦔</span>'">
+</div>
+<div class="chatbot-window" id="chatbotWindow">
+  <div class="chatbot-header">
+    <div class="chatbot-header-left">
+      <img src="eddy-avatar.png" alt="Eddy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%23D4A017\'/%3E%3Ctext x=\'50\' y=\'67\' text-anchor=\'middle\' font-size=\'40\' fill=\'white\'%3E🦔%3C/text%3E%3C/svg%3E'">
+      <span>Eddy l'assistente</span>
+    </div>
+    <button class="chatbot-close" onclick="toggleChatbot()">✕</button>
+  </div>
+  <div class="chatbot-messages" id="chatbotMessages">
+    <div class="chatbot-msg ai">Ciao! Sono Eddy 🦔, il tuo assistente personale. Posso aiutarti a studiare: riassunti, spiegazioni, consigli! Come posso esserti utile oggi? 😊</div>
+  </div>
+  <div class="chatbot-input-row">
+    <input id="chatbotInput" placeholder="Scrivi un messaggio..." onkeydown="if(event.key==='Enter')sendChatbotMsg()">
+    <button onclick="sendChatbotMsg()">➤</button>
+  </div>
+</div>
+
+<script>
+// ═══ CHATBOT AVANZATO CON CONTESTO intelligente ═══
+let chatbotHistory = [];
+let currentContext = "";
+
+function toggleChatbot() {
+  const win = document.getElementById('chatbotWindow');
+  win.classList.toggle('open');
+}
+
+async function sendChatbotMsg() {
+  const input = document.getElementById('chatbotInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  
+  input.value = '';
+  addChatbotMsg('user', msg);
+  
+  // Recupera il contesto attuale (cosa sta facendo l'utente)
+  const activePage = document.querySelector('.page.active')?.id || '';
+  let contextHint = "";
+  if (activePage === 'page-home') {
+    const activeText = getActiveText();
+    if (activeText && activeText.length > 20) {
+      contextHint = `L'utente sta studiando questo testo: "${activeText.slice(0, 500)}". `;
+    }
+    if (selectedTool) {
+      contextHint += `Sta usando lo strumento: ${selectedTool}. `;
+    }
+  } else if (activePage === 'page-timer') {
+    contextHint = "L'utente è nella sezione Pomodoro (timer di studio). ";
+  } else if (activePage === 'page-archive') {
+    contextHint = "L'utente sta consultando i propri appunti salvati. ";
+  }
+  
+  // Mostra animazione "sta scrivendo"
+  showTypingIndicator();
+  
+  chatbotHistory.push({ role: 'user', content: msg });
+  
+  try {
+    const systemPrompt = `Sei Eddy 🦔, un riccio simpatico e intelligente, assistente personale per studenti dell'app EdUnity. 
+    Rispondi in modo amichevole, dolce ma competente, usando massimo 3-4 frasi. Aiuta con:
+    - spiegazioni di concetti (anche difficili)
+    - consigli su come studiare meglio
+    - supporto emotivo (incoraggiamento)
+    - informazioni sull'app EdUnity (registrazione, riassunti AI, flashcard, pomodoro, gruppi)
+    
+    ${contextHint}
+    
+    IMPORTANTE: Se l'utente ti chiede di RIASSUNERE qualcosa o fare un QUIZ, rispondi con:
+    "[AZIONE:RIASSUNTO]" oppure "[AZIONE:QUIZ]" all'inizio della risposta, seguito dal contenuto.
+    Per domande normali, rispondi normalmente.
+    
+    Sii naturale, usa qualche emoji ogni tanto. Non essere troppo prolisso.`;
+    
+    const msgs = [
+      { role: 'system', content: systemPrompt },
+      ...chatbotHistory.slice(-8)
+    ];
+    
+    const res = await fetch(API_URL + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: msgs,
+        max_tokens: 400,
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.75
+      })
+    });
+    
+    if (!res.ok) throw new Error('Errore API');
+    const data = await res.json();
+    let reply = data.choices?.[0]?.message?.content || 'Scusa, non ho capito. Riprova! 🦔';
+    
+    // Gestisci azioni speciali
+    if (reply.includes('[AZIONE:RIASSUNTO]')) {
+      reply = reply.replace('[AZIONE:RIASSUNTO]', '📝 Ecco un riassunto: ');
+      // Attiva automaticamente lo strumento riassunto
+      if (getActiveText()) {
+        selectTool('summary');
+        setTimeout(() => runSelectedTool(), 500);
+      }
+    } else if (reply.includes('[AZIONE:QUIZ]')) {
+      reply = reply.replace('[AZIONE:QUIZ]', '❓ Ecco un quiz: ');
+      if (getActiveText()) {
+        selectTool('quiz');
+        setTimeout(() => runSelectedTool(), 500);
+      }
+    }
+    
+    addChatbotMsg('ai', reply);
+    chatbotHistory.push({ role: 'assistant', content: reply });
+    if (chatbotHistory.length > 12) chatbotHistory = chatbotHistory.slice(-12);
+    
+  } catch (e) {
+    addChatbotMsg('ai', 'Ops, ho un po\' di confusione 🦔🌀. Riprova tra poco!');
+    console.error(e);
+  } finally {
+    hideTypingIndicator();
+  }
+}
+
+function addChatbotMsg(role, text) {
+  const mc = document.getElementById('chatbotMessages');
+  if (!mc) return;
+  const div = document.createElement('div');
+  div.className = 'chatbot-msg ' + (role === 'ai' ? 'ai' : 'user');
+  div.textContent = text;
+  mc.appendChild(div);
+  mc.scrollTop = mc.scrollHeight;
+}
+
+function showTypingIndicator() {
+  const mc = document.getElementById('chatbotMessages');
+  if (!mc) return;
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'chatbot-typing';
+  typingDiv.id = 'chatbotTyping';
+  typingDiv.innerHTML = '<span></span><span></span><span></span>';
+  mc.appendChild(typingDiv);
+  mc.scrollTop = mc.scrollHeight;
+}
+
+function hideTypingIndicator() {
+  const typing = document.getElementById('chatbotTyping');
+  if (typing) typing.remove();
+}
+
+// ═══ FIX GRUPPI ═══
+let currentGroups = [];
+
+function switchArchiveTab(tab) {
+  const myDiv = document.getElementById('archiveMy');
+  const groupsDiv = document.getElementById('archiveGroups');
+  const tabMy = document.getElementById('archiveTabMy');
+  const tabGroups = document.getElementById('archiveTabGroups');
+  
+  if (tab === 'my') {
+    myDiv.style.display = 'block';
+    groupsDiv.style.display = 'none';
+    tabMy.classList.add('active');
+    tabGroups.classList.remove('active');
+    renderArchive();
+  } else {
+    myDiv.style.display = 'none';
+    groupsDiv.style.display = 'block';
+    tabMy.classList.remove('active');
+    tabGroups.classList.add('active');
+    loadGroups();
+  }
+}
+
+async function loadGroups() {
+  const u = auth.currentUser;
+  if (!u) return;
+  
+  try {
+    // Gruppi creati dall'utente + gruppi a cui partecipa
+    const createdSnap = await db.collection('groups').where('createdBy', '==', u.uid).get();
+    const memberSnap = await db.collection('groupMembers').where('userId', '==', u.uid).get();
+    
+    const groupIds = new Set();
+    createdSnap.forEach(doc => groupIds.add(doc.id));
+    memberSnap.forEach(doc => groupIds.add(doc.data().groupId));
+    
+    const groups = [];
+    for (const gid of groupIds) {
+      const gDoc = await db.collection('groups').doc(gid).get();
+      if (gDoc.exists) {
+        groups.push({ id: gDoc.id, ...gDoc.data() });
+      }
+    }
+    
+    currentGroups = groups;
+    renderGroupsList();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('groupsList').innerHTML = '<p style="color:var(--red)">Errore nel caricamento gruppi</p>';
+  }
+}
+
+function renderGroupsList() {
+  const container = document.getElementById('groupsList');
+  if (!container) return;
+  
+  if (!currentGroups.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">👥</div><h3>Nessun gruppo</h3><p style="font-size:.8rem;color:var(--muted)">Crea un gruppo o unisciti con un codice</p><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="openCreateGroupModal()">+ Crea gruppo</button></div>`;
+    return;
+  }
+  
+  container.innerHTML = currentGroups.map(g => `
+    <div class="group-card">
+      <div class="group-card-header">
+        <div class="group-avatar">👥</div>
+        <div class="group-info">
+          <div class="group-name">${escapeHtml(g.name)}</div>
+          <div class="group-code">Codice: ${g.code || 'N/D'}</div>
+          <div class="group-member-count">👤 ${g.memberCount || 1} membri</div>
+        </div>
+        <div class="group-actions">
+          <button class="btn btn-sm btn-outline" onclick="openGroupLessons('${g.id}', '${escapeHtml(g.name)}')">📂</button>
+          <button class="btn btn-sm btn-danger" onclick="leaveGroup('${g.id}')">🚪</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openCreateGroupModal() {
+  document.getElementById('createGroupModal').classList.add('open');
+  generateGroupCode();
+}
+
+function closeCreateGroupModal() {
+  document.getElementById('createGroupModal').classList.remove('open');
+}
+
+function generateGroupCode() {
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  document.getElementById('groupCodePreview').textContent = code;
+  document.getElementById('groupCodePreview').dataset.code = code;
+}
+
+async function confirmCreateGroup() {
+  const name = document.getElementById('groupNameInput').value.trim();
+  const code = document.getElementById('groupCodePreview').dataset.code;
+  const u = auth.currentUser;
+  
+  if (!name) {
+    showToast('Inserisci un nome per il gruppo', 'err');
+    return;
+  }
+  if (!code) {
+    generateGroupCode();
+  }
+  
+  try {
+    const newGroup = {
+      name: name,
+      code: code,
+      createdBy: u.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      memberCount: 1
+    };
+    const docRef = await db.collection('groups').add(newGroup);
+    await db.collection('groupMembers').add({
+      groupId: docRef.id,
+      userId: u.uid,
+      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('✅ Gruppo creato!');
+    closeCreateGroupModal();
+    loadGroups();
+    switchArchiveTab('groups');
+  } catch (e) {
+    showToast('Errore: ' + e.message, 'err');
+  }
+}
+
+async function joinGroup() {
+  const code = prompt('Inserisci il codice del gruppo:');
+  if (!code) return;
+  
+  try {
+    const q = await db.collection('groups').where('code', '==', code.toUpperCase()).get();
+    if (q.empty) {
+      showToast('Codice non valido', 'err');
+      return;
+    }
+    const group = q.docs[0];
+    const groupId = group.id;
+    const u = auth.currentUser;
+    
+    // Controlla se già membro
+    const existing = await db.collection('groupMembers').where('groupId', '==', groupId).where('userId', '==', u.uid).get();
+    if (!existing.empty) {
+      showToast('Sei già in questo gruppo!');
+      return;
+    }
+    
+    await db.collection('groupMembers').add({
+      groupId: groupId,
+      userId: u.uid,
+      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('groups').doc(groupId).update({
+      memberCount: firebase.firestore.FieldValue.increment(1)
+    });
+    showToast('✅ Unito al gruppo!');
+    loadGroups();
+  } catch (e) {
+    showToast('Errore: ' + e.message, 'err');
+  }
+}
+
+async function leaveGroup(groupId) {
+  if (!confirm('Vuoi uscire da questo gruppo?')) return;
+  const u = auth.currentUser;
+  try {
+    const memberSnap = await db.collection('groupMembers').where('groupId', '==', groupId).where('userId', '==', u.uid).get();
+    memberSnap.forEach(doc => doc.ref.delete());
+    await db.collection('groups').doc(groupId).update({
+      memberCount: firebase.firestore.FieldValue.increment(-1)
+    });
+    showToast('Uscito dal gruppo');
+    loadGroups();
+  } catch (e) {
+    showToast('Errore', 'err');
+  }
+}
+
+async function openGroupLessons(groupId, groupName) {
+  const lessonsSnap = await db.collection('groupLessons').where('groupId', '==', groupId).orderBy('createdAt', 'desc').get();
+  const lessons = lessonsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  
+  const modalContent = `
+    <div class="modal">
+      <h3>📚 ${groupName}</h3>
+      <div style="max-height: 60vh; overflow-y: auto;">
+        ${lessons.length ? lessons.map(l => `
+          <div class="lesson-item" onclick="viewGroupLesson('${l.id}', '${groupId}')">
+            <strong>${escapeHtml(l.title || 'Lezione')}</strong>
+            <div style="font-size:0.7rem;color:var(--muted)">${new Date(l.createdAt?.toDate()).toLocaleDateString()}</div>
+          </div>
+        `).join('') : '<p style="color:var(--muted)">Nessuna lezione condivisa</p>'}
+      </div>
+      <button class="btn btn-primary btn-sm btn-block" style="margin-top:12px" onclick="addCurrentLessonToGroup('${groupId}')">➕ Aggiungi lezione corrente</button>
+      <button class="btn btn-outline btn-sm btn-block" onclick="closeModalFromGroup()">Chiudi</button>
+    </div>
+  `;
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay open';
+  modal.id = 'tempGroupModal';
+  modal.innerHTML = modalContent;
+  document.body.appendChild(modal);
+}
+
+function closeModalFromGroup() {
+  const modal = document.getElementById('tempGroupModal');
+  if (modal) modal.remove();
+}
+
+async function addCurrentLessonToGroup(groupId) {
+  if (!lastRawOutput) {
+    showToast('Genera prima un contenuto con l\'AI!', 'err');
+    return;
+  }
+  const title = prompt('Titolo della lezione:') || 'Lezione condivisa';
+  const u = auth.currentUser;
+  try {
+    await db.collection('groupLessons').add({
+      groupId: groupId,
+      title: title,
+      content: lastRawOutput,
+      createdBy: u.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('✅ Lezione condivisa nel gruppo!');
+    closeModalFromGroup();
+    openGroupLessons(groupId, '');
+  } catch (e) {
+    showToast('Errore: ' + e.message, 'err');
+  }
+}
+
+function viewGroupLesson(lessonId, groupId) {
+  // Implementa visualizzazione
+  showToast('Funzionalità in sviluppo');
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
+
+function searchGroups() {
+  const query = document.getElementById('groupSearch')?.value.toLowerCase() || '';
+  const container = document.getElementById('groupsList');
+  if (!container) return;
+  const filtered = currentGroups.filter(g => g.name.toLowerCase().includes(query) || (g.code || '').toLowerCase().includes(query));
+  if (!filtered.length) {
+    container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">Nessun gruppo trovato</p>';
+    return;
+  }
+  container.innerHTML = filtered.map(g => `
+    <div class="group-card">
+      <div class="group-card-header">
+        <div class="group-avatar">👥</div>
+        <div class="group-info">
+          <div class="group-name">${escapeHtml(g.name)}</div>
+          <div class="group-code">Codice: ${g.code || 'N/D'}</div>
+        </div>
+        <div class="group-actions">
+          <button class="btn btn-sm btn-outline" onclick="openGroupLessons('${g.id}', '${escapeHtml(g.name)}')">📂</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Aggiungi pulsante "Unisciti a gruppo" nell'interfaccia gruppi
+document.addEventListener('DOMContentLoaded', () => {
+  const groupsContainer = document.getElementById('archiveGroups');
+  if (groupsContainer && !groupsContainer.querySelector('.join-group-btn')) {
+    const joinBtn = document.createElement('button');
+    joinBtn.className = 'btn btn-outline btn-sm';
+    joinBtn.style.marginBottom = '12px';
+    joinBtn.innerHTML = '🔗 Unisciti a un gruppo con codice';
+    joinBtn.onclick = joinGroup;
+    groupsContainer.insertBefore(joinBtn, groupsContainer.firstChild);
+  }
+});
+
+// ═══ FUNZIONE PER OTTENERE TESTO ATTIVO (già presente) ═══
+function getActiveText() {
+  return (typeof transcript !== 'undefined' && transcript.trim()) || 
+         (document.getElementById('manualText')?.value.trim() || '');
+}
+
+// ═══ RENDER PROFILE (mancante) ═══
+async function renderProfile() {
+  const u = auth.currentUser;
+  if (!u) return;
+  const nameInput = document.getElementById('profileName');
+  if (nameInput && !nameInput.value) nameInput.value = u.displayName || '';
+  document.getElementById('profileNameDisplay').textContent = nameInput?.value || u.displayName || 'Studente';
+  document.getElementById('accountEmail').textContent = u.email;
+  try {
+    const lessons = await db.collection('lessons').where('userId', '==', u.uid).get();
+    document.getElementById('statLezioni').textContent = lessons.size;
+    const materie = new Set(lessons.docs.map(d => d.data().materia));
+    document.getElementById('statMaterie').textContent = materie.size;
+  } catch(e) {}
+  document.getElementById('statAI').textContent = parseInt(localStorage.getItem('edunity_ai_count') || '0');
+}
+
+// Aggiorna la goPage per includere renderProfile
+const originalGoPage = goPage;
+window.goPage = function(id) {
+  originalGoPage(id);
+  if (id === 'profile') renderProfile();
+  if (id === 'archive') {
+    if (document.getElementById('archiveTabMy').classList.contains('active')) renderArchive();
+    else loadGroups();
+  }
+};
+
+</script>
+</body>
+</html>
