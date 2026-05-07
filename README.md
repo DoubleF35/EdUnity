@@ -82,7 +82,7 @@ EdUnity/
 
 Non serve installare nulla. Apri il browser e vai su:
 
-**[edunityedu.it)**
+**[http://edunityedu.it)**
 
 Per installarla come app sul telefono:
 - **Android (Chrome)** → menu `⋮` → *Aggiungi alla schermata Home*
