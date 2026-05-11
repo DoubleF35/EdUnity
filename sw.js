@@ -1,5 +1,5 @@
 // EdUnity Service Worker — Modalità Offline v1
-const CACHE = 'edunity-v1';
+const CACHE = 'edunity-v2';
 const STATIC = ['/', '/index.html', '/icon-192.png', '/icon-512.png', '/logo.png', '/riccio.png'];
 
 self.addEventListener('install', e => {
